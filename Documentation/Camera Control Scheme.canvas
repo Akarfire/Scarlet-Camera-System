@@ -1,20 +1,20 @@
 {
 	"nodes":[
 		{"id":"0d2d6d452e81763d","type":"group","x":-1180,"y":200,"width":640,"height":780,"label":"Custom Profiles"},
-		{"id":"7f311b3c1e5a1c9a","type":"group","x":-1800,"y":180,"width":440,"height":620,"label":"Simple Profiles"},
-		{"id":"99616692732c7f51","type":"text","text":"# Current Camera Profile : `Value`","x":-1370,"y":-200,"width":280,"height":120,"color":"1"},
+		{"id":"7f311b3c1e5a1c9a","type":"group","x":-1800,"y":200,"width":440,"height":620,"label":"Simple Profiles"},
 		{"id":"e6282b7ebf4f4e20","type":"text","text":"# Dynamically switch between camera profiles","x":-1555,"y":-300,"width":650,"height":60},
 		{"id":"3ecc93c0cb4c4fe6","type":"text","text":"*Custom implementation that determines the desired camera state and it's interpolation, for example a state machine.*","x":-1160,"y":660,"width":600,"height":80},
 		{"id":"905240c47a165071","type":"text","text":"### Blend In Settings \n`FSCS_CameraStateInterpolation`\nDetermines interpolation that will be used during the transition from previous profile to this profile.","x":-1160,"y":760,"width":600,"height":200},
 		{"id":"404e44c43b009cd2","type":"text","text":"# Scarlet Movement Integration\n\nSwitching camera configuration based on current movement state:\n* `Walking` -> ...\n* `Running` -> ...\n* ...","x":-1500,"y":1160,"width":340,"height":300,"color":"#375da4"},
 		{"id":"50a45f3ddc57a12f","type":"text","text":"# Scarlet Combat Integration\n\nSwitching camera configuration based on current movement state:\n* `Arhery_Aiming` -> ...\n* `Melee_Blocking` -> ...\n* ...","x":-1030,"y":1160,"width":340,"height":300,"color":"#375da4"},
 		{"id":"eca06cc0de9f741a","type":"text","text":"# ...","x":-560,"y":1160,"width":250,"height":80,"color":"#375da4"},
-		{"id":"1dc1d93985a0a16a","type":"text","text":"#  `USCS_CustomProfile` Class","x":-1160,"y":220,"width":600,"height":80},
 		{"id":"5b5473e924d446c7","type":"text","text":"### `GetCameraStateInterpolation()` -> `FSCS_CameraStateInterpolation`\nThis method returns the desired camera state interpolation configuration.","x":-1160,"y":460,"width":600,"height":180},
-		{"id":"8a3a0cd594fdd14e","type":"text","text":"# Camera State\n`FSCS_CameraState` - determines a static desired camera state.","x":-1780,"y":200,"width":400,"height":150},
 		{"id":"066fbf812a8bdffb","type":"text","text":"### `GetCameraState()` -> `FSCS_CameraState`\nThis method returns the desired camera state.","x":-1160,"y":320,"width":600,"height":120},
-		{"id":"936ca4991db29b91","type":"text","text":"# Interpolation Settings\n`FSCS_CameraStateInterpolation` - determines how camera state is interpolated while this profile is active.","x":-1780,"y":380,"width":400,"height":170},
-		{"id":"977831be210f1ac0","type":"text","text":"### Blend In Settings \n`FSCS_CameraStateInterpolation`\nDetermines interpolation that will be used during the transition from previous profile to this profile.","x":-1780,"y":580,"width":400,"height":200}
+		{"id":"1dc1d93985a0a16a","type":"text","text":"#  `USCS_CameraProfile` Class Decendants","x":-1160,"y":220,"width":600,"height":80},
+		{"id":"99616692732c7f51","type":"text","text":"# Current Camera Profile : `Value`","x":-1370,"y":-200,"width":280,"height":120,"color":"1"},
+		{"id":"8a3a0cd594fdd14e","type":"text","text":"# Camera State\n`FSCS_CameraState` - determines a static desired camera state.","x":-1780,"y":220,"width":400,"height":150},
+		{"id":"936ca4991db29b91","type":"text","text":"# Interpolation Settings\n`FSCS_CameraStateInterpolation` - determines how camera state is interpolated while this profile is active.","x":-1780,"y":400,"width":400,"height":170},
+		{"id":"977831be210f1ac0","type":"text","text":"### Blend In Settings \n`FSCS_CameraStateInterpolation`\nDetermines interpolation that will be used during the transition from previous profile to this profile.","x":-1780,"y":600,"width":400,"height":200}
 	],
 	"edges":[
 		{"id":"46e716f20e155dee","fromNode":"99616692732c7f51","fromSide":"bottom","toNode":"0d2d6d452e81763d","toSide":"top"},
