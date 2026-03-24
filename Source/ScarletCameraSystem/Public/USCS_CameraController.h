@@ -20,7 +20,7 @@ public:
 
 	// Camera boom positioning the camera behind the character 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+	class USpringArmComponent* BoomArm;
 
 	// Camera component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -32,21 +32,41 @@ protected:
 	// Currently active camera state
 	FSCS_CameraState CurrentCameraState;
 
+	// Currently active camera state interpolation
+	FSCS_CameraStateInterpolation CurrentCameraStateInterpolation;
+
 	// Currently active camera profile name
 	FName CurrentCameraProfileName;
+
+	// All initialized profiles are stored here
+	TMap<FName, class USCS_CameraProfile*> CameraProfiles;
+
+
+protected:
+	// Profile switching
+
+	// Queue of profiles we need to switch to
+	TQueue<FName> ProfileSwitchingQueue;
+
+	// Name of the camera profile that was active before the latest switch animation has started playing
+	FName PreviousCameraProfile;
+
+	// Current time value of the blending animation, goes from Duration to 0.0 (or below 0.0) while playing
+	// If the value is <= 0.0, then the animation has stopped / is not playing
+	float BlendingAnimationTime = 0.0;
 
 public:
 
 	// IMPORTANT: Simple and Custom camera profiles MUST NOT SHARE NAMES
-	// (and in case they do, custom profiles will be preffered over simple profiles during access)
+	// (and in case they do, custom profiles will be preffered over simple profiles)
 
 	// Simple camera profile descriptors
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	TMap<FName, struct FSCS_SimpleCameraProfileDescription> SimpleCameraProfiles;
+	TMap<FName, FSCS_SimpleCameraProfileDescription> SimpleCameraProfiles;
 
 	// Custom camera profile classes
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	TMap<FName, TSubclassOf<class USCS_CameraProfile*>> CustomCameraProfiles;
+	TMap<FName, TSubclassOf<class USCS_CameraProfile>> CustomCameraProfiles;
 
 
 	// Camera profile used by default
@@ -58,17 +78,28 @@ public:
 	FSCS_BoomArmParameters BoomArmParameters;
 
 protected:
-	// CACHE
-	FName PreviousCameraProfileName;
-
-protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	// Creates USCS_CameraProfile objects based on camera profile configuration
+	void InitializeProfiles();
+
+	// Updates profile blending animation if one is currently playing or starts a new one if one is queued.
+	void UpdateProfileTransitionAnimation(float DeltaTime);
+
+	// Feteches camera state interpolation from the profile (does nothing while a transition animation is playing)
+	void UpdateCurrentCameraStateInterpolation();
+
+	// Updates current camera state based on interpolation configuration
+	void UpdateCurrentCameraState(float DeltaTime);
 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+
+	// INTERFACE
 
 	// Returns camera component
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem")
@@ -83,9 +114,17 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem")
 	const FName& GetCurrentCameraProfileName() { return CurrentCameraProfileName; }
 
-	// Changes current camera profile
+	// Changes current camera profile with a transition animation
 	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
-	void SetCurrentCameraProfile(const FName& InProfileName) { CurrentCameraProfileName = InProfileName; }
+	void SwitchCameraProfile(const FName& InProfileName);
+
+	// Forces a new camera profile and stops all transition animations
+	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
+	void ForceSetCameraProfile(const FName& InProfileName);
+
+	// Whether profile transition animation is currently playing or not
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem")
+	bool IsProfileTransitionAnimationPlaying() { return BlendingAnimationTime > 0.0f; }
 
 
 	// Returns camera profile object by it's registry name

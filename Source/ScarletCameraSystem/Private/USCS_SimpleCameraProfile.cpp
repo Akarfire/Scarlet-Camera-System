@@ -2,4 +2,3 @@
 
 
 #include "USCS_SimpleCameraProfile.h"
-

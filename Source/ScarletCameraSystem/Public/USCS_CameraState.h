@@ -3,6 +3,57 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Curves/CurveFloat.h"
+
+// Determines the way camera transform is handled
+UENUM(BlueprintType)
+enum class ESCS_TransformType : uint8
+{
+	PlayerAttachment UMETA(DisplayName = "Player Attachment"),
+	ActorAttachment UMETA(DisplayName = "Actor Attachment"),
+	World UMETA(DisplayName = "World")
+};
+
+// Defines the way camera's location is handled
+USTRUCT(BlueprintType)
+struct FSCS_CameraLocation
+{
+	GENERATED_BODY()
+
+	// Type of location handling
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	ESCS_TransformType LocationType;
+
+	// The actor used for `ActorAttachment` transform type
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	AActor* AttachmentActor;
+
+	// Used either as world location for `World` transform type 
+	// or as offset for 'ActorAttachment' and `PlayerAttachment` transform type
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FVector Location;
+};
+
+// Defines the way camera's rotation is handled
+USTRUCT(BlueprintType)
+struct FSCS_CameraRotation
+{
+	GENERATED_BODY()
+
+	// Type of rotation handling
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	ESCS_TransformType RotationType;
+
+	// The actor used for `ActorAttachment` transform type
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	AActor* AttachmentActor;
+
+	// Used either as world rotation for `World` transform type 
+	// or as offset for 'ActorAttachment' and `PlayerAttachment` transform type
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FRotator Rotation;
+};
+
 
 // Defines a camera state
 USTRUCT(BlueprintType)
@@ -25,7 +76,27 @@ struct FSCS_CameraState
 	// Whether boom arm's collision should be performed or not
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool DoCollisionTest = true;
+
+	// The way location is handled (location of the origin point of the boom arm)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FSCS_CameraLocation CameraLocation;
+
+	// The way rotation is handled (rotation of the boom arm)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FSCS_CameraRotation CameraRotation;
+
+
+	// Methods
+	
+	// Calculates location of the origin point of the boom arm
+	// PlayerActor is used for `PlayerAttachment` type of transform
+	FVector ResolveLocation(AActor* PlayerActor = nullptr);
+
+	// Calculates rotation of the boom arm
+	// PlayerActor is used for `PlayerAttachment` type of transform
+	FRotator ResolveRotation(AActor* PlayerActor = nullptr);
 };
+
 
 
 // Determines which type of interpolation will be used
@@ -46,7 +117,7 @@ struct FSCS_CameraStateInterpolation
 
 	// Interpolation type for camera's field of view
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	ESCS_InterpolationType FieldOfView_InterpolationType = ESCS_InterpolationType::None;
+	ESCS_InterpolationType FieldOfView_InterpolationType = ESCS_InterpolationType::Ease;
 
 	// Speed of interpolation for camera's field of view
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -55,7 +126,7 @@ struct FSCS_CameraStateInterpolation
 
 	// Interpolation type for Boom Arm Length state
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	ESCS_InterpolationType BoomArmLength_InterpolationType = ESCS_InterpolationType::None;
+	ESCS_InterpolationType BoomArmLength_InterpolationType = ESCS_InterpolationType::Ease;
 
 	// Speed of interpolation for Boom Arm Length state
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -64,12 +135,68 @@ struct FSCS_CameraStateInterpolation
 
 	// Interpolation type for Camera Offset state
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	ESCS_InterpolationType CameraOffset_InterpolationType = ESCS_InterpolationType::None;
+	ESCS_InterpolationType CameraOffset_InterpolationType = ESCS_InterpolationType::Ease;
 
 	// Speed of interpolation for Camera Offset state
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float CameraOffset_InterpolationSpeed = 10.f;
+
+
+	// Interpolation type for Camera Location (location of the origin point of the boom arm)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	ESCS_InterpolationType Location_InterpolationType = ESCS_InterpolationType::Ease;
+
+	// Speed of interpolation for Camera Location (location of the origin point of the boom arm)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float Location_InterpolationSpeed = 50.f;
+
+
+	// Interpolation type for Camera Rotation (rotation of the boom arm)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	ESCS_InterpolationType Rotation_InterpolationType = ESCS_InterpolationType::Ease;
+
+	// Speed of interpolation for Camera Rotation (rotation of the boom arm)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float Rotation_InterpolationSpeed = 50.f;
 };
+
+
+// Defines how blend profiles are blended together during transitions
+USTRUCT(BlueprintType)
+struct FSCS_BlendingSettings
+{
+	GENERATED_BODY()
+
+	// Blending animation duration
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float BlendAnimationDuration = 0.5f;
+
+	// Blending curve for camera's field of view
+	// Linear interpolation is used if not curve is specified
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UCurveFloat* FieldOfView_Curve;
+
+	// Blending curve for camera's boom arm length
+	// Linear interpolation is used if not curve is specified
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UCurveFloat* BoomArmLength_Curve;
+
+	// Blending curve for camera's offset
+	// Linear interpolation is used if not curve is specified
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UCurveFloat* CameraOffset_Curve;
+
+	// Blending curve for Camera Location (location of the origin point of the boom arm)
+	// Linear interpolation is used if not curve is specified
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UCurveFloat* Location_Curve;
+
+	// Blending curve for Camera Rotation (rotation of the boom arm)
+	// Linear interpolation is used if not curve is specified
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UCurveFloat* Rotation_Curve;
+};
+
 
 
 // Defines static camera boom arm parameters

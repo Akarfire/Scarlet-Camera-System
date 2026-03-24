@@ -41,24 +41,24 @@ public:
 	FSCS_CameraStateInterpolation GetCameraStateInterpolation();
 	virtual FSCS_CameraStateInterpolation GetCameraStateInterpolation_Implementation() { return FSCS_CameraStateInterpolation(); }
 
-	//// Returns interpolation settings for transitioning from previous profile to this one
-	//UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
-	//FSCS_CameraStateInterpolation GetBlendInSettings();
-	//virtual FSCS_CameraStateInterpolation GetBlendInSettings_Implementation() { return FSCS_CameraStateInterpolation(); }
+	// Returns blending settings for transitioning from previous profile to this one
+	UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
+	FSCS_BlendingSettings GetBlendInSettings();
+	virtual FSCS_BlendingSettings GetBlendInSettings_Implementation() { return FSCS_BlendingSettings(); }
 
 
 	// Called when this profile is activated
-	UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
 	void Activate();
 	virtual void Activate_Implementation() {}
 
 	// Called when this profile is deactivated
-	UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
 	void Deactivate();
 	virtual void Deactivate_Implementation() {}
 
 	// Called every time the camera controller ticks (while this profile is active)
-	UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
 	void Update(float DeltaTime);
 	virtual void Update_Implementation(float DeltaTime) {}
 };
