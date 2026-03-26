@@ -1,10 +1,10 @@
 {
 	"nodes":[
 		{"id":"10edf80401d34876","type":"text","text":"### Activate New Profile\nThe requested profile is activated and set to be updated every tick.","x":120,"y":-245,"width":280,"height":170},
-		{"id":"4d1b3e92c03aa284","x":120,"y":-20,"width":280,"height":280,"type":"text","text":"### Blending Animation\nBlending old profile camera state with the new one over time, based on settings defined by new profile's Blend In Settings. Camera State Interpolation is blended linearly."},
-		{"id":"7dc85860e2315885","x":-400,"y":-240,"width":380,"height":160,"type":"text","text":"# Profile Switching Queue\n\nA queue of Profile Names coming from `SwitchCameraProfile`."},
-		{"id":"aa9b84b6503f5d8b","type":"text","text":"### Deactivate Old Profile\nThe old profile is deactivated and will not be updated until it is activated once again.","x":120,"y":360,"width":280,"height":200},
-		{"id":"fd0f78f169f814bd","x":-235,"y":435,"width":50,"height":50,"type":"text","text":""}
+		{"id":"4d1b3e92c03aa284","type":"text","text":"### Blending Animation\nBlending old profile camera state with the new one over time, based on settings defined by new profile's Blend In Settings. Camera State Interpolation is blended linearly.","x":120,"y":-20,"width":280,"height":280},
+		{"id":"7dc85860e2315885","type":"text","text":"# Profile Switching Queue\n\nA queue of Profile Names coming from `SwitchCameraProfile`.","x":-400,"y":-240,"width":380,"height":160},
+		{"id":"aa9b84b6503f5d8b","type":"text","text":"### Deactivate Old Profile\nThe old profile is deactivated and will not be updated until it is activated once again.","x":120,"y":320,"width":280,"height":200},
+		{"id":"fd0f78f169f814bd","type":"text","text":"","x":-235,"y":395,"width":50,"height":50}
 	],
 	"edges":[
 		{"id":"7d5054a080f85366","fromNode":"10edf80401d34876","fromSide":"bottom","toNode":"4d1b3e92c03aa284","toSide":"top"},
