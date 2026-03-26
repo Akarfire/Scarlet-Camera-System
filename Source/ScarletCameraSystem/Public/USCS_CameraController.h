@@ -77,6 +77,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 	FSCS_BoomArmParameters BoomArmParameters;
 
+	// Index of the player, owning this camera
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	int PlayerIndex = 0;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -84,14 +88,31 @@ protected:
 	// Creates USCS_CameraProfile objects based on camera profile configuration
 	void InitializeProfiles();
 
-	// Updates profile blending animation if one is currently playing or starts a new one if one is queued.
+	// Updates profile blending animation if one is currently playing or starts a new one if one is queued
 	void UpdateProfileTransitionAnimation(float DeltaTime);
 
-	// Feteches camera state interpolation from the profile (does nothing while a transition animation is playing)
+	// Fetches camera state interpolation from the profile (does nothing while a transition animation is playing)
 	void UpdateCurrentCameraStateInterpolation();
 
-	// Updates current camera state based on interpolation configuration
+	// Updates current camera state based on interpolation configuration (does nothing while a transition animation is playing)
 	void UpdateCurrentCameraState(float DeltaTime);
+
+	
+	// Camera state interpolation over time (not for timelines)
+	void ProgressiveInterpolateCameraState(FSCS_CameraState& CurrentState, const FSCS_CameraState& TargetState, 
+		float DeltaTime, const FSCS_CameraStateInterpolation& Interpolation);
+
+	// Applies camera state
+	void ApplyCameraState(const FSCS_CameraState& State, bool ApplyTransform = true);
+
+	// Camera location interpolation over time (not for timelines)
+	FVector ProgressiveInterpolateCameraLocation(const FVector& CurrentLocation, const FSCS_CameraState& State, 
+		const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime);
+
+	// Camera rotation interpolation over time (not for timelines)
+	FRotator ProgressiveInterpolateCameraRotation(const FRotator& CurrentRotation, const FSCS_CameraState& State, 
+		const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime);
+
 
 public:
 	// Called every frame

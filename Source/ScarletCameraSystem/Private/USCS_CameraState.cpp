@@ -3,10 +3,9 @@
 
 #include "USCS_CameraState.h"
 
-#include "Kismet/GameplayStatics.h"
 
 // Calculates location of the origin point of the boom arm
-FVector FSCS_CameraState::ResolveLocation(AActor* PlayerActor)
+FVector FSCS_CameraState::ResolveLocation(AActor* PlayerActor) const
 {
     FVector Result;
 
@@ -39,7 +38,7 @@ FVector FSCS_CameraState::ResolveLocation(AActor* PlayerActor)
 }
 
 // Calculates rotation of the boom arm
-FRotator FSCS_CameraState::ResolveRotation(AActor* PlayerActor)
+FRotator FSCS_CameraState::ResolveRotation(AActor* PlayerActor) const
 {
 	FRotator Result;
 

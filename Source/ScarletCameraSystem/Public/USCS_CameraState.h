@@ -90,11 +90,11 @@ struct FSCS_CameraState
 	
 	// Calculates location of the origin point of the boom arm
 	// PlayerActor is used for `PlayerAttachment` type of transform
-	FVector ResolveLocation(AActor* PlayerActor = nullptr);
+	FVector ResolveLocation(AActor* PlayerActor = nullptr) const;
 
 	// Calculates rotation of the boom arm
 	// PlayerActor is used for `PlayerAttachment` type of transform
-	FRotator ResolveRotation(AActor* PlayerActor = nullptr);
+	FRotator ResolveRotation(AActor* PlayerActor = nullptr) const;
 };
 
 
