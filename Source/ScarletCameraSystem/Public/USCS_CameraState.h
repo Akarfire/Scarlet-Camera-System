@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Curves/CurveFloat.h"
+#include "USCS_CameraState.generated.h"
 
 // Determines the way camera transform is handled
 UENUM(BlueprintType)
@@ -32,6 +33,8 @@ struct FSCS_CameraLocation
 	// or as offset for 'ActorAttachment' and `PlayerAttachment` transform type
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FVector Location;
+
+	FSCS_CameraLocation() {}
 };
 
 // Defines the way camera's rotation is handled
@@ -52,6 +55,8 @@ struct FSCS_CameraRotation
 	// or as offset for 'ActorAttachment' and `PlayerAttachment` transform type
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FRotator Rotation;
+
+	FSCS_CameraRotation() {}
 };
 
 
@@ -81,9 +86,20 @@ struct FSCS_CameraState
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FSCS_CameraLocation CameraLocation;
 
-	// The way rotation is handled (rotation of the boom arm)
+	// The way boom arm rotation is handled
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FSCS_CameraRotation CameraRotation;
+	FSCS_CameraRotation CameraArmRotation;
+
+	// Whether to use camera rotation independent of the boom arm
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	bool EnableSeparateCameraRotation = false;
+
+	// The way camera rotation is handled
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FSCS_CameraRotation SeparateCameraRotation;
+
+
+	FSCS_CameraState() {}
 
 
 	// Methods
@@ -92,9 +108,18 @@ struct FSCS_CameraState
 	// PlayerActor is used for `PlayerAttachment` type of transform
 	FVector ResolveLocation(AActor* PlayerActor = nullptr) const;
 
+	// Calculates rotation of the camera
+	// PlayerActor is used for `PlayerAttachment` type of transform
+	FRotator ResolveCameraRotation(AActor* PlayerActor = nullptr) const { return ResolveRotation(SeparateCameraRotation, PlayerActor); }
+
 	// Calculates rotation of the boom arm
 	// PlayerActor is used for `PlayerAttachment` type of transform
-	FRotator ResolveRotation(AActor* PlayerActor = nullptr) const;
+	FRotator ResolveBoomArmRotation(AActor* PlayerActor = nullptr) const { return ResolveRotation(CameraArmRotation, PlayerActor); }
+
+protected:
+
+	// Inner method for resolving FSCS_CameraRotation
+	FRotator ResolveRotation(const FSCS_CameraRotation& Rotation, AActor* PlayerActor = nullptr) const;
 };
 
 
@@ -158,6 +183,9 @@ struct FSCS_CameraStateInterpolation
 	// Speed of interpolation for Camera Rotation (rotation of the boom arm)
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float Rotation_InterpolationSpeed = 50.f;
+
+
+	FSCS_CameraStateInterpolation() {}
 };
 
 
@@ -172,29 +200,32 @@ struct FSCS_BlendingSettings
 	float BlendAnimationDuration = 0.5f;
 
 	// Blending curve for camera's field of view
-	// Linear interpolation is used if not curve is specified
+	// Ease-In-Out interpolation is used if not curve is specified
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UCurveFloat* FieldOfView_Curve;
 
 	// Blending curve for camera's boom arm length
-	// Linear interpolation is used if not curve is specified
+	// Ease-In-Out interpolation is used if not curve is specified
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UCurveFloat* BoomArmLength_Curve;
 
 	// Blending curve for camera's offset
-	// Linear interpolation is used if not curve is specified
+	// Ease-In-Out interpolation is used if not curve is specified
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UCurveFloat* CameraOffset_Curve;
 
 	// Blending curve for Camera Location (location of the origin point of the boom arm)
-	// Linear interpolation is used if not curve is specified
+	// Ease-In-Out interpolation is used if not curve is specified
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UCurveFloat* Location_Curve;
 
 	// Blending curve for Camera Rotation (rotation of the boom arm)
-	// Linear interpolation is used if not curve is specified
+	// Ease-In-Out interpolation is used if not curve is specified
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UCurveFloat* Rotation_Curve;
+
+
+	FSCS_BlendingSettings() {}
 };
 
 
@@ -209,4 +240,6 @@ struct FSCS_BoomArmParameters
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool EnableLag = false;
+
+	FSCS_BoomArmParameters() {}
 };

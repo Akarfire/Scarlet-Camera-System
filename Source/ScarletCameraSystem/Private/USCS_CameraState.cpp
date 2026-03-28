@@ -38,29 +38,29 @@ FVector FSCS_CameraState::ResolveLocation(AActor* PlayerActor) const
 }
 
 // Calculates rotation of the boom arm
-FRotator FSCS_CameraState::ResolveRotation(AActor* PlayerActor) const
+FRotator FSCS_CameraState::ResolveRotation(const FSCS_CameraRotation& Rotation, AActor* PlayerActor) const
 {
 	FRotator Result;
 
-	switch (CameraRotation.RotationType)
+	switch (Rotation.RotationType)
 	{
 
 	case ESCS_TransformType::PlayerAttachment:
 		if (PlayerActor)
-			Result = PlayerActor->GetActorRotation() + CameraRotation.Rotation;
+			Result = PlayerActor->GetActorRotation() + Rotation.Rotation;
 		else
-			Result = CameraRotation.Rotation;
+			Result = Rotation.Rotation;
 		break;
 
 	case ESCS_TransformType::ActorAttachment:
-		if (CameraRotation.AttachmentActor)
-			Result = CameraRotation.AttachmentActor->GetActorRotation() + CameraRotation.Rotation;
+		if (Rotation.AttachmentActor)
+			Result = Rotation.AttachmentActor->GetActorRotation() + Rotation.Rotation;
 		else
-			Result = CameraRotation.Rotation;
+			Result = Rotation.Rotation;
 		break;
 
 	case ESCS_TransformType::World:
-		Result = CameraRotation.Rotation;
+		Result = Rotation.Rotation;
 		break;
 
 	default:
