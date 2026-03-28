@@ -1,16 +1,18 @@
 {
 	"nodes":[
 		{"id":"10edf80401d34876","type":"text","text":"### Activate New Profile\nThe requested profile is activated and set to be updated every tick.","x":120,"y":-245,"width":280,"height":170},
-		{"id":"4d1b3e92c03aa284","type":"text","text":"### Blending Animation\nBlending old profile camera state with the new one over time, based on settings defined by new profile's Blend In Settings. Camera State Interpolation is blended linearly.","x":120,"y":-20,"width":280,"height":280},
 		{"id":"7dc85860e2315885","type":"text","text":"# Profile Switching Queue\n\nA queue of Profile Names coming from `SwitchCameraProfile`.","x":-400,"y":-240,"width":380,"height":160},
 		{"id":"aa9b84b6503f5d8b","type":"text","text":"### Deactivate Old Profile\nThe old profile is deactivated and will not be updated until it is activated once again.","x":120,"y":320,"width":280,"height":200},
-		{"id":"fd0f78f169f814bd","type":"text","text":"","x":-235,"y":395,"width":50,"height":50}
+		{"id":"fd0f78f169f814bd","type":"text","text":"","x":-235,"y":395,"width":50,"height":50},
+		{"id":"d3dd8a4514d5e992","type":"text","text":"### Switch Profile\nA request to switch to a different camera profile is made","x":-880,"y":-229,"width":338,"height":139},
+		{"id":"4d1b3e92c03aa284","type":"text","text":"### Blending Animation\nBlending old profile camera state with the new one over time, based on settings defined by new profile's Blend In Settings.","x":120,"y":0,"width":280,"height":218}
 	],
 	"edges":[
 		{"id":"7d5054a080f85366","fromNode":"10edf80401d34876","fromSide":"bottom","toNode":"4d1b3e92c03aa284","toSide":"top"},
 		{"id":"d6f5bc49a5cfc868","fromNode":"4d1b3e92c03aa284","fromSide":"bottom","toNode":"aa9b84b6503f5d8b","toSide":"top"},
 		{"id":"ae9af3559f4e2056","fromNode":"7dc85860e2315885","fromSide":"right","toNode":"10edf80401d34876","toSide":"left"},
 		{"id":"5ed2287645049edb","fromNode":"fd0f78f169f814bd","fromSide":"top","toNode":"7dc85860e2315885","toSide":"bottom"},
-		{"id":"d0456694b15e27d3","fromNode":"aa9b84b6503f5d8b","fromSide":"left","toNode":"fd0f78f169f814bd","toSide":"right"}
+		{"id":"d0456694b15e27d3","fromNode":"aa9b84b6503f5d8b","fromSide":"left","toNode":"fd0f78f169f814bd","toSide":"right"},
+		{"id":"7050dd61492f61c2","fromNode":"d3dd8a4514d5e992","fromSide":"right","toNode":"7dc85860e2315885","toSide":"left"}
 	]
 }
