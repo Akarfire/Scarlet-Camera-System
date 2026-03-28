@@ -12,6 +12,8 @@
 #include "USCS_SimpleCameraProfile.h"
 
 
+// INITIALIZATION
+
 // Sets default values
 ASCS_CameraController::ASCS_CameraController()
 {
@@ -64,35 +66,142 @@ void ASCS_CameraController::InitializeProfiles()
 	}
 }
 
+
+
+// UPDATE
+
+// Called every frame
+void ASCS_CameraController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UpdateProfileTransitionAnimation(DeltaTime);
+
+	if (!IsProfileTransitionAnimationPlaying())
+	{
+		UpdateCurrentCameraStateInterpolation();
+		UpdateCurrentCameraState(DeltaTime);
+	}
+}
+
 // Updates profile blending animation if one is currently playing or starts a new one if one is queued
 void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 {
+	// Starting new animations
+	if (!IsProfileTransitionAnimationPlaying())
+	{
+		if (ProfileSwitchingQueue.IsEmpty()) return;
+
+		PreviousCameraProfile = CurrentCameraProfileName;
+		ProfileSwitchingQueue.Dequeue(CurrentCameraProfileName);
+
+		GetCameraProfile(CurrentCameraProfileName)->Activate();
+
+		BlendingAnimationTime = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().BlendAnimationDuration;
+
+		return;
+	}
+
+	// Updating current animation
+	{
+		BlendingAnimationTime -= DeltaTime;
+
+		const FSCS_BlendingSettings& BlendInSettings = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings();
+		float Progress = 1.f - BlendingAnimationTime / BlendInSettings.BlendAnimationDuration;
+
+		AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
+
+		// State interpolation
+		TimelineInterpolateCameraState(CurrentCameraState,
+			GetCameraProfile(PreviousCameraProfile)->GetCameraState(),
+			GetCameraProfile(CurrentCameraProfileName)->GetCameraState(),
+			Progress, BlendInSettings);
+
+		FVector Location = TimelineInterpolateCameraLocation(
+			GetCameraProfile(PreviousCameraProfile)->GetCameraState(),
+			GetCameraProfile(CurrentCameraProfileName)->GetCameraState(),
+			Progress, BlendInSettings, PlayerActor);
+
+		FRotator BoomArmRotation = TimelineInterpolateCameraArmRotation(
+			GetCameraProfile(PreviousCameraProfile)->GetCameraState(),
+			GetCameraProfile(CurrentCameraProfileName)->GetCameraState(),
+			Progress, BlendInSettings, PlayerActor);
+
+		FRotator CameraRotation = TimelineInterpolateCameraRotation(
+			GetCameraProfile(PreviousCameraProfile)->GetCameraState(),
+			GetCameraProfile(CurrentCameraProfileName)->GetCameraState(),
+			Progress, BlendInSettings, PlayerActor);
+
+		// Application
+		ApplyCameraState(CurrentCameraState, false);
+
+		SetActorLocation(Location);
+		SetActorRotation(BoomArmRotation);
+
+		if (CurrentCameraState.EnableSeparateCameraRotation)
+			Camera->SetWorldRotation(CameraRotation);
+	}
+
+	// Ending animation
+	if (BlendingAnimationTime <= 0.f)
+	{
+		BlendingAnimationTime = 0.f;
+		GetCameraProfile(PreviousCameraProfile)->Deactivate();
+	}
 }
 
-// Fetches camera state interpolation from the profile (does nothing while a transition animation is playing)
+// Fetches camera state interpolation from the profile
 void ASCS_CameraController::UpdateCurrentCameraStateInterpolation()
 {
-	if (IsProfileTransitionAnimationPlaying()) return;
 	CurrentCameraStateInterpolation = GetCameraProfile(CurrentCameraProfileName)->GetCameraStateInterpolation();
 }
 
-// Updates current camera state based on interpolation configuration (does nothing while a transition animation is playing)
+// Updates current camera state based on interpolation configuration
 void ASCS_CameraController::UpdateCurrentCameraState(float DeltaTime)
 {
-	if (IsProfileTransitionAnimationPlaying()) return;
-
 	// Interpolating camera state
 	FSCS_CameraState TargetState = GetCameraProfile(CurrentCameraProfileName)->GetCameraState();
 	ProgressiveInterpolateCameraState(CurrentCameraState, TargetState, DeltaTime, CurrentCameraStateInterpolation);
 
-	// Application
+	// Parameter application
 	ApplyCameraState(CurrentCameraState, false);
 
 	// Applying transform
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
+
 	SetActorLocation(ProgressiveInterpolateCameraLocation(GetActorLocation(), CurrentCameraState, CurrentCameraStateInterpolation, PlayerActor, DeltaTime));
-	SetActorRotation(ProgressiveInterpolateCameraRotation(GetActorRotation(), CurrentCameraState, CurrentCameraStateInterpolation, PlayerActor, DeltaTime));
+	SetActorRotation(ProgressiveInterpolateCameraArmRotation(GetActorRotation(), CurrentCameraState, CurrentCameraStateInterpolation, PlayerActor, DeltaTime));
+
+	if (CurrentCameraState.EnableSeparateCameraRotation)
+		Camera->SetWorldRotation(ProgressiveInterpolateCameraRotation(GetActorRotation(), CurrentCameraState, CurrentCameraStateInterpolation, PlayerActor, DeltaTime));
+
 }
+
+
+// Applies camera state
+void ASCS_CameraController::ApplyCameraState(const FSCS_CameraState& State, bool ApplyTransform)
+{
+	Camera->FieldOfView = State.FieldOfView;
+
+	BoomArm->TargetArmLength = State.BoomArmLength;
+	BoomArm->TargetOffset = State.CameraOffset;
+	BoomArm->bDoCollisionTest = State.DoCollisionTest;
+
+	if (ApplyTransform)
+	{
+		AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
+
+		SetActorLocation(State.ResolveLocation(PlayerActor));
+		SetActorRotation(State.ResolveBoomArmRotation(PlayerActor));
+
+		if (State.EnableSeparateCameraRotation)
+			Camera->SetWorldRotation(State.ResolveCameraRotation(PlayerActor));
+	}
+}
+
+
+
+// PROGRESSIVE INTERPOLATION
 
 // Camera state interpolation over time (not for timelines)
 void ASCS_CameraController::ProgressiveInterpolateCameraState(FSCS_CameraState& CurrentState, const FSCS_CameraState& TargetState, float DeltaTime, const FSCS_CameraStateInterpolation& Interpolation)
@@ -145,25 +254,8 @@ void ASCS_CameraController::ProgressiveInterpolateCameraState(FSCS_CameraState& 
 
 	// Transform (No interpolation here, interpolation happens on the application stage)
 	CurrentState.CameraLocation = TargetState.CameraLocation;
-	CurrentState.CameraRotation = TargetState.CameraRotation;
-}
-
-// Applies camera state
-void ASCS_CameraController::ApplyCameraState(const FSCS_CameraState& State, bool ApplyTransform)
-{
-	Camera->FieldOfView = State.FieldOfView;
-
-	BoomArm->TargetArmLength = State.BoomArmLength;
-	BoomArm->TargetOffset = State.CameraOffset;
-	BoomArm->bDoCollisionTest = State.DoCollisionTest;
-
-	if (ApplyTransform)
-	{
-		AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
-
-		SetActorLocation(State.ResolveLocation(PlayerActor));
-		SetActorRotation(State.ResolveRotation(PlayerActor));
-	}
+	CurrentState.SeparateCameraRotation = TargetState.SeparateCameraRotation;
+	CurrentState.CameraArmRotation = TargetState.CameraArmRotation;
 }
 
 // Camera location interpolation over time (not for timelines)
@@ -189,35 +281,136 @@ FVector ASCS_CameraController::ProgressiveInterpolateCameraLocation(const FVecto
 }
 
 // Camera rotation interpolation over time (not for timelines)
+FRotator ASCS_CameraController::ProgressiveInterpolateCameraArmRotation(const FRotator& CurrentRotation, const FSCS_CameraState& State,
+	const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime)
+{
+	FRotator NewRotation;
+
+	if (Interpolation.Location_InterpolationType == ESCS_InterpolationType::None)
+		NewRotation = State.ResolveBoomArmRotation(PlayerActor);
+
+	else if (Interpolation.Location_InterpolationType == ESCS_InterpolationType::Ease)
+		NewRotation = UKismetMathLibrary::RInterpTo(CurrentRotation,
+			State.ResolveBoomArmRotation(PlayerActor), DeltaTime,
+			Interpolation.Location_InterpolationSpeed);
+
+	else if (Interpolation.Location_InterpolationType == ESCS_InterpolationType::Linear)
+		NewRotation = UKismetMathLibrary::RInterpTo_Constant(CurrentRotation,
+			State.ResolveBoomArmRotation(PlayerActor), DeltaTime,
+			Interpolation.Location_InterpolationSpeed);
+
+	return NewRotation;
+}
+
+// Camera arm interpolation over time (not for timelines)
 FRotator ASCS_CameraController::ProgressiveInterpolateCameraRotation(const FRotator& CurrentRotation, const FSCS_CameraState& State,
 	const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime)
 {
 	FRotator NewRotation;
 
 	if (Interpolation.Location_InterpolationType == ESCS_InterpolationType::None)
-		NewRotation = State.ResolveRotation(PlayerActor);
+		NewRotation = State.ResolveCameraRotation(PlayerActor);
 
 	else if (Interpolation.Location_InterpolationType == ESCS_InterpolationType::Ease)
 		NewRotation = UKismetMathLibrary::RInterpTo(CurrentRotation,
-			State.ResolveRotation(PlayerActor), DeltaTime,
+			State.ResolveCameraRotation(PlayerActor), DeltaTime,
 			Interpolation.Location_InterpolationSpeed);
 
 	else if (Interpolation.Location_InterpolationType == ESCS_InterpolationType::Linear)
 		NewRotation = UKismetMathLibrary::RInterpTo_Constant(CurrentRotation,
-			State.ResolveRotation(PlayerActor), DeltaTime,
+			State.ResolveCameraRotation(PlayerActor), DeltaTime,
 			Interpolation.Location_InterpolationSpeed);
 
 	return NewRotation;
 }
 
-// Called every frame
-void ASCS_CameraController::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
-	UpdateProfileTransitionAnimation(DeltaTime);
-	UpdateCurrentCameraStateInterpolation();
-	UpdateCurrentCameraState(DeltaTime);
+
+// TIMELINE INTERPOLATION
+
+// Camera state interpolation over a timeline
+void ASCS_CameraController::TimelineInterpolateCameraState(FSCS_CameraState& OutState, const FSCS_CameraState& InitialState, 
+	const FSCS_CameraState& TargetState, float Progress, const FSCS_BlendingSettings& BlendingSettings)
+{
+	// Default value in case no curve is specified
+	float EaseInOut = 0.5f * (cos(Progress + PI) + 1);
+
+	// FOV
+	float FOV_Progress = EaseInOut;
+	if (BlendingSettings.FieldOfView_Curve)
+		FOV_Progress = BlendingSettings.FieldOfView_Curve->GetFloatValue(Progress);
+
+	OutState.FieldOfView = UKismetMathLibrary::Lerp(InitialState.FieldOfView, TargetState.FieldOfView, FOV_Progress);
+
+	// Boom Arm Length
+	float BoomArmLength_Progress = EaseInOut;
+	if (BlendingSettings.BoomArmLength_Curve)
+		BoomArmLength_Progress = BlendingSettings.BoomArmLength_Curve->GetFloatValue(Progress);
+
+	OutState.BoomArmLength = UKismetMathLibrary::Lerp(InitialState.BoomArmLength, TargetState.BoomArmLength, BoomArmLength_Progress);
+
+	// Camera Offset
+	float CameraOffset_Progress = EaseInOut;
+	if (BlendingSettings.CameraOffset_Curve)
+		CameraOffset_Progress = BlendingSettings.CameraOffset_Curve->GetFloatValue(Progress);
+
+	OutState.CameraOffset = UKismetMathLibrary::VLerp(InitialState.CameraOffset, TargetState.CameraOffset, CameraOffset_Progress);
+}
+
+// Camera location interpolation over a timeline
+FVector ASCS_CameraController::TimelineInterpolateCameraLocation(const FSCS_CameraState& InitialState, const FSCS_CameraState& TargetState, 
+	float Progress, const FSCS_BlendingSettings& BlendingSettings, AActor* PlayerActor)
+{
+	// Default value in case no curve is specified
+	float EaseInOut = 0.5f * (cos(Progress + PI) + 1);
+
+	float ResultingProgress = EaseInOut;
+	if (BlendingSettings.Location_Curve)
+		ResultingProgress = BlendingSettings.Location_Curve->GetFloatValue(Progress);
+	
+	return UKismetMathLibrary::VLerp(InitialState.ResolveLocation(), TargetState.ResolveLocation(), ResultingProgress);
+}
+
+// Camera arm rotation interpolation over a timeline
+FRotator ASCS_CameraController::TimelineInterpolateCameraArmRotation(const FSCS_CameraState& InitialState, 
+	const FSCS_CameraState& TargetState, float Progress, const FSCS_BlendingSettings& BlendingSettings, AActor* PlayerActor)
+{
+	// Default value in case no curve is specified
+	float EaseInOut = 0.5f * (cos(Progress + PI) + 1);
+
+	float ResultingProgress = EaseInOut;
+	if (BlendingSettings.Location_Curve)
+		ResultingProgress = BlendingSettings.Location_Curve->GetFloatValue(Progress);
+
+	return UKismetMathLibrary::RLerp(InitialState.ResolveBoomArmRotation(), TargetState.ResolveBoomArmRotation(), ResultingProgress, true);
+}
+
+// Camera arm interpolation over a timeline
+FRotator ASCS_CameraController::TimelineInterpolateCameraRotation(const FSCS_CameraState& InitialState, 
+	const FSCS_CameraState& TargetState, float Progress, const FSCS_BlendingSettings& BlendingSettings, AActor* PlayerActor)
+{
+	// Default value in case no curve is specified
+	float EaseInOut = 0.5f * (cos(Progress + PI) + 1);
+
+	float ResultingProgress = EaseInOut;
+	if (BlendingSettings.Location_Curve)
+		ResultingProgress = BlendingSettings.Location_Curve->GetFloatValue(Progress);
+
+	return UKismetMathLibrary::RLerp(InitialState.ResolveCameraRotation(), TargetState.ResolveCameraRotation(), ResultingProgress, true);
+}
+
+
+
+// Changes current camera profile with a transition animation
+void ASCS_CameraController::SwitchCameraProfile(const FName& InProfileName)
+{
+	ProfileSwitchingQueue.Enqueue(InProfileName);
+}
+
+// Forces a new camera profile and stops all transition animations
+void ASCS_CameraController::ForceSetCameraProfile(const FName& InProfileName)
+{
+	// TO DO : Implement this
 }
 
 // Returns camera profile object by it's registry name
