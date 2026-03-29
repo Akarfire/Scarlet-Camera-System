@@ -16,7 +16,12 @@ class SCARLETCAMERASYSTEM_API USCS_CameraProfile : public UObject
 	GENERATED_BODY()
 	
 protected:
+
+	// Associated USCS_CameraController
 	class ASCS_CameraController* CameraController;
+
+	// Name of the profile
+	FName ProfileName;
 
 public:
 
@@ -61,4 +66,14 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
 	void Update(float DeltaTime);
 	virtual void Update_Implementation(float DeltaTime) {}
+
+
+	// SYSTEM
+
+	// CALLED BY THE CAMERA CONTROLLER. Sets up profile's name
+	void SetupProfile(class ASCS_CameraController* InCameraController, const FName& InProfileName)
+	{ 
+		CameraController = InCameraController;
+		ProfileName = InProfileName; 
+	}
 };
