@@ -12,6 +12,7 @@ kanban-plugin: board
 - [ ] * [x] Simple Camera Profiles
 - [ ] * [x] Custom Camera Profiles
 - [ ] * [ ] Adding Profiles In Runtime
+- [ ] * [ ] Easy Interface for Simple Profile Modification
 
 
 ## Integration
