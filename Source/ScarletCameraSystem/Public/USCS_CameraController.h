@@ -40,6 +40,7 @@ protected:
 	FName CurrentCameraProfileName;
 
 	// All initialized profiles are stored here
+	UPROPERTY()
 	TMap<FName, class USCS_CameraProfile*> CameraProfiles;
 
 
@@ -62,21 +63,25 @@ public:
 	// (and in case they do, custom profiles will be preffered over simple profiles)
 
 	// Simple camera profile descriptors
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CameraProfiles")
 	TMap<FName, FSCS_SimpleCameraProfileDescription> SimpleCameraProfiles;
 
 	// Custom camera profile classes
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CameraProfiles")
 	TMap<FName, TSubclassOf<USCS_CameraProfile>> CustomCameraProfiles;
 
 
 	// Camera profile used by default
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CameraProfiles")
 	FName DefaultCameraProfile;
 
 	// Camera boom arm parameters
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BoomArmParameters")
 	FSCS_BoomArmParameters BoomArmParameters;
+
+	// Whether this camera controller should become the active view target on begin play
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	bool AutoActivateViewTarget = true;
 
 	// Index of the player, owning this camera
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
