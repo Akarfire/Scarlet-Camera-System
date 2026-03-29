@@ -35,26 +35,16 @@ class SCARLETCAMERASYSTEM_API USCS_SimpleCameraProfile : public USCS_CameraProfi
 public:
 	USCS_SimpleCameraProfile() {}
 
-protected:
-
-	// Profile's description
-	FSCS_SimpleCameraProfileDescription Description;
-
-public:
-
-	// Synchronizes profile parameters with data in FSCS_SimpleCameraProfileDescription
-	void SyncDescription(const FSCS_SimpleCameraProfileDescription& InDescription) { Description = InDescription; }
-
 public:
 
 	// OVERRIDES
 
 	// Returns desired camera state
-	virtual FSCS_CameraState GetCameraState_Implementation() override { return Description.CameraState; }
+	virtual FSCS_CameraState GetCameraState_Implementation() override;
 
 	// Returns desired camera state interpolation
-	virtual FSCS_CameraStateInterpolation GetCameraStateInterpolation_Implementation() override { return Description.InterpolationSettings; }
+	virtual FSCS_CameraStateInterpolation GetCameraStateInterpolation_Implementation() override;
 
 	// Returns blending settings for transitioning from previous profile to this one
-	virtual FSCS_BlendingSettings GetBlendInSettings_Implementation() override { return Description.BlendInSettings; }
+	virtual FSCS_BlendingSettings GetBlendInSettings_Implementation() override;
 };
