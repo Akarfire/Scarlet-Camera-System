@@ -169,11 +169,11 @@ struct FSCS_CameraStateInterpolation
 
 	// Interpolation type for Camera Location (location of the origin point of the boom arm)
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	ESCS_InterpolationType Location_InterpolationType = ESCS_InterpolationType::Ease;
+	ESCS_InterpolationType Location_InterpolationType = ESCS_InterpolationType::None;
 
 	// Speed of interpolation for Camera Location (location of the origin point of the boom arm)
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	float Location_InterpolationSpeed = 50.f;
+	float Location_InterpolationSpeed = 10.f;
 
 
 	// Interpolation type for Camera Rotation (rotation of the boom arm)
@@ -183,6 +183,15 @@ struct FSCS_CameraStateInterpolation
 	// Speed of interpolation for Camera Rotation (rotation of the boom arm)
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float Rotation_InterpolationSpeed = 50.f;
+
+
+	// Interpolation type for Camera Rotation (rotation of the boom arm)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	ESCS_InterpolationType SeparateCameraRotation_InterpolationType = ESCS_InterpolationType::None;
+
+	// Speed of interpolation for Camera Rotation (rotation of the boom arm)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float SeparateCameraRotation_InterpolationSpeed = 10.f;
 
 
 	FSCS_CameraStateInterpolation() {}
@@ -224,22 +233,11 @@ struct FSCS_BlendingSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UCurveFloat* Rotation_Curve;
 
+	// Blending curve for Separate Camera Rotation
+// Ease-In-Out interpolation is used if not curve is specified
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UCurveFloat* SeparateCameraRotation_Curve;
+
 
 	FSCS_BlendingSettings() {}
-};
-
-
-
-// Defines static camera boom arm parameters
-USTRUCT(BlueprintType)
-struct FSCS_BoomArmParameters
-{
-	GENERATED_BODY()
-
-	// TO DO: Add more boom arm parameters
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool EnableLag = false;
-
-	FSCS_BoomArmParameters() {}
 };
