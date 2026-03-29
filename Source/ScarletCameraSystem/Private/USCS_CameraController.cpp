@@ -44,6 +44,9 @@ void ASCS_CameraController::BeginPlay()
 	}
 	
 	InitializeProfiles();
+
+	// Acitavting Default Profile
+	SetCameraProfile(DefaultCameraProfile, false);
 }
 
 // Creates USCS_CameraProfile objects based on camera profile configuration
@@ -59,6 +62,7 @@ void ASCS_CameraController::InitializeProfiles()
 			UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Duplicate custom profile names!"));
 
 		USCS_CameraProfile* ProfileObject = NewObject<USCS_CameraProfile>(this, ProfileClass);
+		ProfileObject->SetupProfile(this, ProfileName);
 		CameraProfiles.Add(ProfileName, ProfileObject);
 	}
 
@@ -72,12 +76,10 @@ void ASCS_CameraController::InitializeProfiles()
 			UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Duplicate profile names!"));
 
 		USCS_SimpleCameraProfile* ProfileObject = NewObject<USCS_SimpleCameraProfile>(this, USCS_SimpleCameraProfile::StaticClass());
-		ProfileObject->SyncDescription(ProfileDescription);
+		ProfileObject->SetupProfile(this, ProfileName);
 		CameraProfiles.Add(ProfileName, ProfileObject);
 	}
 }
-
-
 
 // UPDATE
 
@@ -86,6 +88,8 @@ void ASCS_CameraController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateProfiles(DeltaTime);
+
 	UpdateProfileTransitionAnimation(DeltaTime);
 
 	if (!IsProfileTransitionAnimationPlaying())
@@ -93,6 +97,15 @@ void ASCS_CameraController::Tick(float DeltaTime)
 		UpdateCurrentCameraStateInterpolation();
 		UpdateCurrentCameraState(DeltaTime);
 	}
+}
+
+// Updates currently active profiles
+void ASCS_CameraController::UpdateProfiles(float DeltaTime)
+{
+	GetCameraProfile(CurrentCameraProfileName)->Update(DeltaTime);
+
+	if (IsProfileTransitionAnimationPlaying())
+		GetCameraProfile(PreviousCameraProfile)->Update(DeltaTime);
 }
 
 // Updates profile blending animation if one is currently playing or starts a new one if one is queued
@@ -115,8 +128,6 @@ void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 
 	// Updating current animation
 	{
-		BlendingAnimationTime -= DeltaTime;
-
 		const FSCS_BlendingSettings& BlendInSettings = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings();
 		float Progress = 1.f - BlendingAnimationTime / BlendInSettings.BlendAnimationDuration;
 
@@ -150,8 +161,10 @@ void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 		SetActorLocation(Location);
 		SetActorRotation(BoomArmRotation);
 
-		if (CurrentCameraState.EnableSeparateCameraRotation)
-			Camera->SetWorldRotation(CameraRotation);
+		Camera->SetWorldRotation(CameraRotation);
+
+		// Time tick
+		BlendingAnimationTime -= DeltaTime;
 	}
 
 	// Ending animation
@@ -185,8 +198,13 @@ void ASCS_CameraController::UpdateCurrentCameraState(float DeltaTime)
 	SetActorLocation(ProgressiveInterpolateCameraLocation(GetActorLocation(), CurrentCameraState, CurrentCameraStateInterpolation, PlayerActor, DeltaTime));
 	SetActorRotation(ProgressiveInterpolateCameraArmRotation(GetActorRotation(), CurrentCameraState, CurrentCameraStateInterpolation, PlayerController, DeltaTime));
 
-	if (CurrentCameraState.EnableSeparateCameraRotation)
-		Camera->SetWorldRotation(ProgressiveInterpolateCameraRotation(GetActorRotation(), CurrentCameraState, CurrentCameraStateInterpolation, PlayerController, DeltaTime));
+	if (CurrentCameraStateInterpolation.SeparateCameraRotation_InterpolationType != ESCS_InterpolationType::None || CurrentCameraState.EnableSeparateCameraRotation)
+		Camera->SetWorldRotation(ProgressiveInterpolateCameraRotation(Camera->GetComponentRotation(), CurrentCameraState,
+			CurrentCameraStateInterpolation, PlayerController, DeltaTime));
+
+	// Separating this into a special case to avoid stuttering in rotation
+	else
+		Camera->SetRelativeRotation(FRotator::ZeroRotator);
 
 }
 
@@ -197,7 +215,7 @@ void ASCS_CameraController::ApplyCameraState(const FSCS_CameraState& State, bool
 	Camera->FieldOfView = State.FieldOfView;
 
 	BoomArm->TargetArmLength = State.BoomArmLength;
-	BoomArm->TargetOffset = State.CameraOffset;
+	BoomArm->SocketOffset = State.CameraOffset;
 	BoomArm->bDoCollisionTest = State.DoCollisionTest;
 
 	if (ApplyTransform)
@@ -210,6 +228,8 @@ void ASCS_CameraController::ApplyCameraState(const FSCS_CameraState& State, bool
 
 		if (State.EnableSeparateCameraRotation)
 			Camera->SetWorldRotation(State.ResolveCameraRotation(PlayerController));
+		else
+			Camera->SetRelativeRotation(FRotator::ZeroRotator);
 	}
 }
 
@@ -265,6 +285,9 @@ void ASCS_CameraController::ProgressiveInterpolateCameraState(FSCS_CameraState& 
 
 	// Do collision test
 	CurrentState.DoCollisionTest = TargetState.DoCollisionTest;
+
+	// Enable separate camera rotation
+	CurrentState.EnableSeparateCameraRotation = TargetState.EnableSeparateCameraRotation;
 
 	// Transform (No interpolation here, interpolation happens on the application stage)
 	CurrentState.CameraLocation = TargetState.CameraLocation;
@@ -322,18 +345,24 @@ FRotator ASCS_CameraController::ProgressiveInterpolateCameraRotation(const FRota
 {
 	FRotator NewRotation;
 
-	if (Interpolation.Rotation_InterpolationType == ESCS_InterpolationType::None)
-		NewRotation = State.ResolveCameraRotation(PlayerActor);
+	FRotator TargetRotation;
+	if (State.EnableSeparateCameraRotation)
+		TargetRotation = State.ResolveCameraRotation(PlayerActor);
+	else
+		TargetRotation = State.ResolveBoomArmRotation(PlayerActor);
 
-	else if (Interpolation.Rotation_InterpolationType == ESCS_InterpolationType::Ease)
+	if (Interpolation.SeparateCameraRotation_InterpolationType == ESCS_InterpolationType::None)
+		NewRotation = TargetRotation;
+
+	if (Interpolation.SeparateCameraRotation_InterpolationType == ESCS_InterpolationType::Ease)
 		NewRotation = UKismetMathLibrary::RInterpTo(CurrentRotation,
-			State.ResolveCameraRotation(PlayerActor), DeltaTime,
-			Interpolation.Rotation_InterpolationSpeed);
+			TargetRotation, DeltaTime,
+			Interpolation.SeparateCameraRotation_InterpolationSpeed);
 
-	else if (Interpolation.Rotation_InterpolationType == ESCS_InterpolationType::Linear)
+	else if (Interpolation.SeparateCameraRotation_InterpolationType == ESCS_InterpolationType::Linear)
 		NewRotation = UKismetMathLibrary::RInterpTo_Constant(CurrentRotation,
-			State.ResolveCameraRotation(PlayerActor), DeltaTime,
-			Interpolation.Rotation_InterpolationSpeed);
+			TargetRotation, DeltaTime,
+			Interpolation.SeparateCameraRotation_InterpolationSpeed);
 
 	return NewRotation;
 }
@@ -347,7 +376,7 @@ void ASCS_CameraController::TimelineInterpolateCameraState(FSCS_CameraState& Out
 	const FSCS_CameraState& TargetState, float Progress, const FSCS_BlendingSettings& BlendingSettings)
 {
 	// Default value in case no curve is specified
-	float EaseInOut = 0.5f * (cos(Progress + PI) + 1);
+	float EaseInOut = 0.5f * (cos(PI * Progress + PI) + 1);
 
 	// FOV
 	float FOV_Progress = EaseInOut;
@@ -376,13 +405,13 @@ FVector ASCS_CameraController::TimelineInterpolateCameraLocation(const FSCS_Came
 	float Progress, const FSCS_BlendingSettings& BlendingSettings, AActor* PlayerActor)
 {
 	// Default value in case no curve is specified
-	float EaseInOut = 0.5f * (cos(Progress + PI) + 1);
+	float EaseInOut = 0.5f * (cos(PI * Progress + PI) + 1);
 
 	float ResultingProgress = EaseInOut;
 	if (BlendingSettings.Location_Curve)
 		ResultingProgress = BlendingSettings.Location_Curve->GetFloatValue(Progress);
 	
-	return UKismetMathLibrary::VLerp(InitialState.ResolveLocation(), TargetState.ResolveLocation(), ResultingProgress);
+	return UKismetMathLibrary::VLerp(InitialState.ResolveLocation(PlayerActor), TargetState.ResolveLocation(PlayerActor), ResultingProgress);
 }
 
 // Camera arm rotation interpolation over a timeline
@@ -390,13 +419,13 @@ FRotator ASCS_CameraController::TimelineInterpolateCameraArmRotation(const FSCS_
 	const FSCS_CameraState& TargetState, float Progress, const FSCS_BlendingSettings& BlendingSettings, AActor* PlayerActor)
 {
 	// Default value in case no curve is specified
-	float EaseInOut = 0.5f * (cos(Progress + PI) + 1);
+	float EaseInOut = 0.5f * (cos(PI * Progress + PI) + 1);
 
 	float ResultingProgress = EaseInOut;
-	if (BlendingSettings.Location_Curve)
-		ResultingProgress = BlendingSettings.Location_Curve->GetFloatValue(Progress);
+	if (BlendingSettings.Rotation_Curve)
+		ResultingProgress = BlendingSettings.Rotation_Curve->GetFloatValue(Progress);
 
-	return UKismetMathLibrary::RLerp(InitialState.ResolveBoomArmRotation(), TargetState.ResolveBoomArmRotation(), ResultingProgress, true);
+	return UKismetMathLibrary::RLerp(InitialState.ResolveBoomArmRotation(PlayerActor), TargetState.ResolveBoomArmRotation(PlayerActor), ResultingProgress, true);
 }
 
 // Camera arm interpolation over a timeline
@@ -404,33 +433,56 @@ FRotator ASCS_CameraController::TimelineInterpolateCameraRotation(const FSCS_Cam
 	const FSCS_CameraState& TargetState, float Progress, const FSCS_BlendingSettings& BlendingSettings, AActor* PlayerActor)
 {
 	// Default value in case no curve is specified
-	float EaseInOut = 0.5f * (cos(Progress + PI) + 1);
+	float EaseInOut = 0.5f * (cos(PI * Progress + PI) + 1);
 
 	float ResultingProgress = EaseInOut;
-	if (BlendingSettings.Location_Curve)
-		ResultingProgress = BlendingSettings.Location_Curve->GetFloatValue(Progress);
+	if (BlendingSettings.SeparateCameraRotation_Curve)
+		ResultingProgress = BlendingSettings.SeparateCameraRotation_Curve->GetFloatValue(Progress);
 
-	return UKismetMathLibrary::RLerp(InitialState.ResolveCameraRotation(), TargetState.ResolveCameraRotation(), ResultingProgress, true);
+	FRotator InitialRotation;
+	if (InitialState.EnableSeparateCameraRotation)
+		InitialRotation = InitialState.ResolveCameraRotation(PlayerActor);
+	else
+		InitialRotation = InitialState.ResolveBoomArmRotation(PlayerActor);
+
+	FRotator TargetRotation;
+	if (TargetState.EnableSeparateCameraRotation)
+		InitialRotation = TargetState.ResolveCameraRotation(PlayerActor);
+	else
+		InitialRotation = TargetState.ResolveBoomArmRotation(PlayerActor);
+
+	// Don't ask me why rotations are in this order, I honestly have no idea why it doesn't work
+	// with the normal order
+	return UKismetMathLibrary::RLerp(TargetRotation, InitialRotation, ResultingProgress, true);
 }
 
 
 
 // Changes current camera profile with a transition animation
-void ASCS_CameraController::SwitchCameraProfile(const FName& InProfileName)
+void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool TransitionAnimation)
 {
 	if (!CameraProfiles.Contains(InProfileName))
 	{
-		UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid camera profile name passed into `SwitchCameraProfile()`"));
+		UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid camera profile name passed into `SwitchCameraProfile(...)`"));
 		return;
 	}
 
-	ProfileSwitchingQueue.Enqueue(InProfileName);
-}
+	if (TransitionAnimation)
+		ProfileSwitchingQueue.Enqueue(InProfileName);
+	else
+	{
+		USCS_CameraProfile* CurrentProfile = GetCameraProfile(CurrentCameraProfileName);
+		if (CurrentProfile)
+			CurrentProfile->Deactivate();
 
-// Forces a new camera profile and stops all transition animations
-void ASCS_CameraController::ForceSetCameraProfile(const FName& InProfileName)
-{
-	// TO DO : Implement this
+		ProfileSwitchingQueue.Empty();
+		BlendingAnimationTime = 0.0f;
+
+		CurrentCameraProfileName = InProfileName;
+		GetCameraProfile(CurrentCameraProfileName)->Activate();
+
+		ApplyCameraState(CurrentCameraState, true);
+	}
 }
 
 // Returns camera profile object by it's registry name

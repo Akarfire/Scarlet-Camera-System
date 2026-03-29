@@ -75,9 +75,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CameraProfiles")
 	FName DefaultCameraProfile;
 
-	// Camera boom arm parameters
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BoomArmParameters")
-	FSCS_BoomArmParameters BoomArmParameters;
 
 	// Whether this camera controller should become the active view target on begin play
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
@@ -97,6 +94,9 @@ protected:
 
 
 	// UPDATE
+
+	// Updates currently active profiles
+	void UpdateProfiles(float DeltaTime);
 
 	// Updates profile blending animation if one is currently playing or starts a new one if one is queued
 	void UpdateProfileTransitionAnimation(float DeltaTime);
@@ -173,11 +173,7 @@ public:
 
 	// Changes current camera profile with a transition animation
 	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
-	void SwitchCameraProfile(const FName& InProfileName);
-
-	// Forces a new camera profile and stops all transition animations
-	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
-	void ForceSetCameraProfile(const FName& InProfileName);
+	void SetCameraProfile(const FName& InProfileName, bool TransitionAnimation = true);
 
 	// Whether profile transition animation is currently playing or not
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem")
