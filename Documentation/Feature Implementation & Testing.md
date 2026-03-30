@@ -1,14 +1,18 @@
+# Core Features
 
 ---
 ### General
 
 * [x] Adding Simple Profiles in Default Settings
-* [ ] Adding Custom Profiles in Default Settings
+* [x] Adding Custom Profiles in Default Settings
 * [x] Specifying Default Profile
-* [ ] Adding Profiles in Runtime
-* [ ] Camera Collision
-* [x] Transition Animation Queue
-* [ ] Disabling Transition Animation Queue
+* [x] Adding Profiles in Runtime
+	* [x] Add Simple Profile
+	* [x] Add Custom Profile
+	* [x] Add Custom Profile Existing
+* [x] Camera Collision
+* [x] Profile Switching Queue
+* [ ] #NotTested Option to disable Profile Switching Queue (the Default behavior)
 
 ---
 ### Simple Camera Profiles
@@ -44,8 +48,10 @@
 
 * [x] Can Switch Profiles with no animation
 * [x] Default transition animation works
+* [ ] #NotTested Interrupt transition (in no Queue Mode)
 * [x] Properties
 	* [x] Blend Animation Duration
+	* [ ] #NotTested Always Freeze Previous State
 	* [x] FOV Curve
 	* [x] Boom Arm Length Curve
 	* [x] Camera Offset Curve
@@ -56,9 +62,9 @@
 ---
 ### Custom Camera Profiles
 
-* [ ] Activation
-* [ ] Deactivation
-* [ ] Updating
-* [ ] Dynamic Camera State
-* [ ] Dynamic Camera State Interpolation
-* [ ] Dynamic Blend In Settings
+* [x] Activation
+* [x] Deactivation
+* [x] Updating
+* [x] Dynamic Camera State
+* [x] Dynamic Camera State Interpolation
+* [x] Dynamic Blend In Settings
