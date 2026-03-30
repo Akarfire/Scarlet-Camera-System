@@ -57,6 +57,9 @@ protected:
 	// If the value is <= 0.0, then the animation has stopped / is not playing
 	float BlendingAnimationTime = 0.0;
 
+	// Frozen state cache (used when profile trasition is iterrupted with a new profile stransition)
+	FSCS_CameraState FrozenState;
+
 public:
 
 	// IMPORTANT: Simple and Custom camera profiles MUST NOT SHARE NAMES
@@ -97,6 +100,9 @@ protected:
 
 	// Updates currently active profiles
 	void UpdateProfiles(float DeltaTime);
+
+	// Starts profile transition animations for enqueued switch requests
+	void UpdateProfileSwitchQueue(float DeltaTime);
 
 	// Updates profile blending animation if one is currently playing or starts a new one if one is queued
 	void UpdateProfileTransitionAnimation(float DeltaTime);
@@ -150,6 +156,14 @@ protected:
 		float Progress, const FSCS_BlendingSettings& BlendingSettings, AActor* PlayerActor);
 
 
+	// Stops any currently playing animation
+	// Returns wheter the animation was playing before this interrupt
+	bool InterruptProfileTransitionAnimation();
+
+	// Freezes current state, removing dynamically resolved elements from it
+	void FreezeCurrentCameraState(FSCS_CameraState& OutFrozenState);
+
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -173,7 +187,7 @@ public:
 
 	// Changes current camera profile with a transition animation
 	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
-	void SetCameraProfile(const FName& InProfileName, bool TransitionAnimation = true);
+	void SetCameraProfile(const FName& InProfileName, bool TransitionAnimation = true, bool Queue = false);
 
 	// Whether profile transition animation is currently playing or not
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem")
@@ -181,10 +195,11 @@ public:
 
 
 	// Returns camera profile object by it's registry name
+	// Returns `nullptr` if no such profile was found
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem")
 	class USCS_CameraProfile* GetCameraProfile(const FName& InProfileName);
 
-/*
+
 	// Registers a new simple camera profile
 	// Returns `true` if the profile was succesfully added, `false` if profile with this name is already registered
 	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
@@ -193,6 +208,11 @@ public:
 	// Registers a new custom camera profile
 	// Returns `true` if the profile was succesfully added, `false` if profile with this name is already registered
 	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
-	bool AddCustomCameraProfile(const FName& InProfileName, class USCS_CameraProfile* InCustomProfile);
-*/
+	bool AddCustomCameraProfile(const FName& InProfileName, TSubclassOf<class USCS_CameraProfile> InCustomProfileClass);
+
+	// Registers an alredy existing custom camera profile
+	// Returns `true` if the profile was succesfully added, `false` if profile with this name is already registered
+	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
+	bool AddCustomCameraProfileExisting(const FName& InProfileName, class USCS_CameraProfile* InCustomProfile);
+
 };

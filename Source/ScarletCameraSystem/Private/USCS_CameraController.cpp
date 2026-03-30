@@ -90,6 +90,7 @@ void ASCS_CameraController::Tick(float DeltaTime)
 
 	UpdateProfiles(DeltaTime);
 
+	UpdateProfileSwitchQueue(DeltaTime);
 	UpdateProfileTransitionAnimation(DeltaTime);
 
 	if (!IsProfileTransitionAnimationPlaying())
@@ -108,10 +109,9 @@ void ASCS_CameraController::UpdateProfiles(float DeltaTime)
 		GetCameraProfile(PreviousCameraProfile)->Update(DeltaTime);
 }
 
-// Updates profile blending animation if one is currently playing or starts a new one if one is queued
-void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
+// Starts profile transition animations for enqueued switch requests
+void ASCS_CameraController::UpdateProfileSwitchQueue(float DeltaTime)
 {
-	// Starting new animations
 	if (!IsProfileTransitionAnimationPlaying())
 	{
 		if (ProfileSwitchingQueue.IsEmpty()) return;
@@ -119,53 +119,60 @@ void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 		PreviousCameraProfile = CurrentCameraProfileName;
 		ProfileSwitchingQueue.Dequeue(CurrentCameraProfileName);
 
+		if (GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().AlwaysFreezePreviousState)
+		{
+			PreviousCameraProfile = "SCS_FROZEN_STATE";
+			FreezeCurrentCameraState(FrozenState);
+		}
+
 		GetCameraProfile(CurrentCameraProfileName)->Activate();
 
-		BlendingAnimationTime = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().BlendAnimationDuration;
-
-		return;
+		BlendingAnimationTime = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().BlendAnimationDuration + DeltaTime;
+		// + DeltaTime is to compensate this ticks animation update
 	}
+}
 
+// Updates profile blending animation if one is currently playing or starts a new one if one is queued
+void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
+{
 	// Updating current animation
-	{
-		const FSCS_BlendingSettings& BlendInSettings = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings();
-		float Progress = 1.f - BlendingAnimationTime / BlendInSettings.BlendAnimationDuration;
+	const FSCS_BlendingSettings& BlendInSettings = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings();
+	float Progress = 1.f - BlendingAnimationTime / BlendInSettings.BlendAnimationDuration;
 
-		AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
-		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
+	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
 
-		// State interpolation
-		TimelineInterpolateCameraState(CurrentCameraState,
-			GetCameraProfile(PreviousCameraProfile)->GetCameraState(),
-			GetCameraProfile(CurrentCameraProfileName)->GetCameraState(),
-			Progress, BlendInSettings);
+	FSCS_CameraState InitialState;
+	if (PreviousCameraProfile != "SCS_FROZEN_STATE") // Special value to use frozen state
+		InitialState = FrozenState;
+	else
+		InitialState = GetCameraProfile(PreviousCameraProfile)->GetCameraState();
 
-		FVector Location = TimelineInterpolateCameraLocation(
-			GetCameraProfile(PreviousCameraProfile)->GetCameraState(),
-			GetCameraProfile(CurrentCameraProfileName)->GetCameraState(),
-			Progress, BlendInSettings, PlayerActor);
+	FSCS_CameraState TargetState = GetCameraProfile(CurrentCameraProfileName)->GetCameraState();
 
-		FRotator BoomArmRotation = TimelineInterpolateCameraArmRotation(
-			GetCameraProfile(PreviousCameraProfile)->GetCameraState(),
-			GetCameraProfile(CurrentCameraProfileName)->GetCameraState(),
-			Progress, BlendInSettings, PlayerController);
+	// State interpolation
+	TimelineInterpolateCameraState(CurrentCameraState,
+		InitialState, TargetState, Progress, BlendInSettings);
 
-		FRotator CameraRotation = TimelineInterpolateCameraRotation(
-			GetCameraProfile(PreviousCameraProfile)->GetCameraState(),
-			GetCameraProfile(CurrentCameraProfileName)->GetCameraState(),
-			Progress, BlendInSettings, PlayerController);
+	FVector Location = TimelineInterpolateCameraLocation(
+		InitialState,TargetState,Progress, BlendInSettings, PlayerActor);
 
-		// Application
-		ApplyCameraState(CurrentCameraState, false);
+	FRotator BoomArmRotation = TimelineInterpolateCameraArmRotation(
+		InitialState, TargetState, Progress, BlendInSettings, PlayerController);
 
-		SetActorLocation(Location);
-		SetActorRotation(BoomArmRotation);
+	FRotator CameraRotation = TimelineInterpolateCameraRotation(
+		InitialState, TargetState, Progress, BlendInSettings, PlayerController);
 
-		Camera->SetWorldRotation(CameraRotation);
+	// Application
+	ApplyCameraState(CurrentCameraState, false);
 
-		// Time tick
-		BlendingAnimationTime -= DeltaTime;
-	}
+	SetActorLocation(Location);
+	SetActorRotation(BoomArmRotation);
+
+	Camera->SetWorldRotation(CameraRotation);
+
+	// Time tick
+	BlendingAnimationTime -= DeltaTime;
 
 	// Ending animation
 	if (BlendingAnimationTime <= 0.f)
@@ -457,9 +464,44 @@ FRotator ASCS_CameraController::TimelineInterpolateCameraRotation(const FSCS_Cam
 }
 
 
+// Stops any currently playing animation
+bool ASCS_CameraController::InterruptProfileTransitionAnimation()
+{
+	if (IsProfileTransitionAnimationPlaying())
+		GetCameraProfile(PreviousCameraProfile)->Deactivate();
+
+	bool ReturnValue = IsProfileTransitionAnimationPlaying();
+	BlendingAnimationTime = 0.0f;
+
+	return ReturnValue;
+}
+
+// Freezes current state, removing dynamically resolved elements from it
+void ASCS_CameraController::FreezeCurrentCameraState(FSCS_CameraState& OutFrozenState)
+{
+	OutFrozenState = CurrentCameraState;
+
+	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
+
+	FVector Location = CurrentCameraState.ResolveLocation(PlayerActor);
+	FRotator ArmRotation = CurrentCameraState.ResolveBoomArmRotation(PlayerController);
+	FRotator CameraRotation = CurrentCameraState.ResolveCameraRotation(PlayerController);
+
+	OutFrozenState.CameraLocation.LocationType = ESCS_TransformType::World;
+	OutFrozenState.CameraLocation.Location = Location;
+
+	OutFrozenState.CameraArmRotation.RotationType = ESCS_TransformType::World;
+	OutFrozenState.CameraArmRotation.Rotation = ArmRotation;
+
+	OutFrozenState.SeparateCameraRotation.RotationType = ESCS_TransformType::World;
+	OutFrozenState.SeparateCameraRotation.Rotation = CameraRotation;
+}
+
+
 
 // Changes current camera profile with a transition animation
-void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool TransitionAnimation)
+void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool TransitionAnimation, bool Queue)
 {
 	if (!CameraProfiles.Contains(InProfileName))
 	{
@@ -467,16 +509,44 @@ void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool Tr
 		return;
 	}
 
-	if (TransitionAnimation)
+	if (Queue && TransitionAnimation)
 		ProfileSwitchingQueue.Enqueue(InProfileName);
+
+	else if (TransitionAnimation)
+	{
+		// Interrupting Animation
+		bool WasAnimationPlaying = InterruptProfileTransitionAnimation();
+
+		// Empty the queue
+		ProfileSwitchingQueue.Empty();
+
+		// Setting up previous camera profile (or a special value)
+		if (WasAnimationPlaying || GetCameraProfile(InProfileName)->GetBlendInSettings().AlwaysFreezePreviousState)
+			PreviousCameraProfile = "SCS_FROZEN_STATE";
+		else
+			PreviousCameraProfile = CurrentCameraProfileName;
+
+		// Freezing the state
+		FreezeCurrentCameraState(FrozenState);
+
+		// Start the transition animation
+		CurrentCameraProfileName = InProfileName;
+		GetCameraProfile(CurrentCameraProfileName)->Activate();
+
+		BlendingAnimationTime = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().BlendAnimationDuration;
+	}
+
 	else
 	{
 		USCS_CameraProfile* CurrentProfile = GetCameraProfile(CurrentCameraProfileName);
 		if (CurrentProfile)
 			CurrentProfile->Deactivate();
 
+		// Interrupting Animation
+		InterruptProfileTransitionAnimation();
+
+		// Empty the queue
 		ProfileSwitchingQueue.Empty();
-		BlendingAnimationTime = 0.0f;
 
 		CurrentCameraProfileName = InProfileName;
 		GetCameraProfile(CurrentCameraProfileName)->Activate();
@@ -486,6 +556,7 @@ void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool Tr
 }
 
 // Returns camera profile object by it's registry name
+// Returns `nullptr` if no such profile was found
 USCS_CameraProfile* ASCS_CameraController::GetCameraProfile(const FName& InProfileName)
 {
 	USCS_CameraProfile** Profile = CameraProfiles.Find(InProfileName);
@@ -494,5 +565,51 @@ USCS_CameraProfile* ASCS_CameraController::GetCameraProfile(const FName& InProfi
 		return *Profile;
 	}
 	return nullptr;
+}
+
+
+// Registers a new simple camera profile
+// Returns `true` if the profile was succesfully added, `false` if profile with this name is already registered
+bool ASCS_CameraController::AddSimpleCameraProfile(const FName& InProfileName, const FSCS_SimpleCameraProfileDescription& InSimpleProfile)
+{
+	if (CameraProfiles.Contains(InProfileName))
+		return false;
+
+	// Registering descriptor
+	SimpleCameraProfiles.Add(InProfileName, InSimpleProfile);
+	
+	// Creating profile object
+	USCS_SimpleCameraProfile* ProfileObject = NewObject<USCS_SimpleCameraProfile>(this, USCS_SimpleCameraProfile::StaticClass());
+	ProfileObject->SetupProfile(this, InProfileName);
+	CameraProfiles.Add(InProfileName, ProfileObject);
+
+	return true;
+}
+
+// Registers a new custom camera profile
+// Returns `true` if the profile was succesfully added, `false` if profile with this name is already registered
+bool ASCS_CameraController::AddCustomCameraProfile(const FName& InProfileName, TSubclassOf<class USCS_CameraProfile> InCustomProfileClass)
+{
+	if (CameraProfiles.Contains(InProfileName))
+		return false;
+
+	USCS_CameraProfile* ProfileObject = NewObject<USCS_CameraProfile>(this, InCustomProfileClass);
+	ProfileObject->SetupProfile(this, InProfileName);
+	CameraProfiles.Add(InProfileName, ProfileObject);
+
+	return true;
+}
+
+// Registers an alredy existing custom camera profile
+// Returns `true` if the profile was succesfully added, `false` if profile with this name is already registered
+bool ASCS_CameraController::AddCustomCameraProfileExisting(const FName& InProfileName, USCS_CameraProfile* InCustomProfile)
+{
+	if (CameraProfiles.Contains(InProfileName))
+		return false;
+
+	InCustomProfile->SetupProfile(this, InProfileName);
+	CameraProfiles.Add(InProfileName, InCustomProfile);
+
+	return true;
 }
 
