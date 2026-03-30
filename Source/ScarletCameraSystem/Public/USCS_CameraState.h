@@ -99,9 +99,6 @@ struct FSCS_CameraState
 	FSCS_CameraRotation SeparateCameraRotation;
 
 
-	FSCS_CameraState() {}
-
-
 	// Methods
 	
 	// Calculates location of the origin point of the boom arm
@@ -192,9 +189,6 @@ struct FSCS_CameraStateInterpolation
 	// Speed of interpolation for Camera Rotation (rotation of the boom arm)
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float SeparateCameraRotation_InterpolationSpeed = 10.f;
-
-
-	FSCS_CameraStateInterpolation() {}
 };
 
 
@@ -207,6 +201,10 @@ struct FSCS_BlendingSettings
 	// Blending animation duration
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float BlendAnimationDuration = 0.5f;
+
+	// TO DO : Add description
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	bool AlwaysFreezePreviousState = false;
 
 	// Blending curve for camera's field of view
 	// Ease-In-Out interpolation is used if not curve is specified
@@ -237,7 +235,4 @@ struct FSCS_BlendingSettings
 // Ease-In-Out interpolation is used if not curve is specified
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UCurveFloat* SeparateCameraRotation_Curve;
-
-
-	FSCS_BlendingSettings() {}
 };
