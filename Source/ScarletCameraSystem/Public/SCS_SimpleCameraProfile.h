@@ -40,11 +40,11 @@ public:
 	// OVERRIDES
 
 	// Returns desired camera state
-	virtual const FSCS_CameraState& GetCameraState_Implementation() override;
+	virtual FSCS_CameraState GetCameraState_Implementation() override;
 
 	// Returns desired camera state interpolation
-	virtual const FSCS_CameraStateInterpolation& GetCameraStateInterpolation_Implementation() override;
+	virtual FSCS_CameraStateInterpolation GetCameraStateInterpolation_Implementation() override;
 
 	// Returns blending settings for transitioning from previous profile to this one
-	virtual const FSCS_BlendingSettings& GetBlendInSettings_Implementation() override;
+	virtual FSCS_BlendingSettings GetBlendInSettings_Implementation() override;
 };
