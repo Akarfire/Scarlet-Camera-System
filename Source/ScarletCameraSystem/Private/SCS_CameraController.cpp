@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "USCS_CameraController.h"
+#include "SCS_CameraController.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
-#include "USCS_CameraProfile.h"
-#include "USCS_SimpleCameraProfile.h"
+#include "SCS_CameraProfile.h"
+#include "SCS_SimpleCameraProfile.h"
 
 
 // INITIALIZATION

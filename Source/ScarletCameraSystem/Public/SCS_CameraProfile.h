@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "USCS_CameraState.h"
-#include "USCS_CameraProfile.generated.h"
+#include "SCS_CameraState.h"
+#include "SCS_CameraProfile.generated.h"
 
 /**
  * 
@@ -23,6 +23,13 @@ protected:
 	// Name of the profile
 	FName ProfileName;
 
+
+	// Cached values
+	// Returned by default, should be modified in `Update(...)` method
+	FSCS_CameraState CameraState;
+	FSCS_CameraStateInterpolation CameraStateInterpolation;
+	FSCS_BlendingSettings BlendInSettings;
+
 public:
 
 	// Returns a pointer to the associated camera controller
@@ -38,18 +45,18 @@ public:
 
 	// Returns desired camera state
 	UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
-	FSCS_CameraState GetCameraState();
-	virtual FSCS_CameraState GetCameraState_Implementation() { return FSCS_CameraState(); }
+	const FSCS_CameraState& GetCameraState();
+	virtual const FSCS_CameraState& GetCameraState_Implementation() { return CameraState; }
 
 	// Returns desired camera state interpolation
 	UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
-	FSCS_CameraStateInterpolation GetCameraStateInterpolation();
-	virtual FSCS_CameraStateInterpolation GetCameraStateInterpolation_Implementation() { return FSCS_CameraStateInterpolation(); }
+	const FSCS_CameraStateInterpolation& GetCameraStateInterpolation();
+	virtual const FSCS_CameraStateInterpolation& GetCameraStateInterpolation_Implementation() { return CameraStateInterpolation; }
 
 	// Returns blending settings for transitioning from previous profile to this one
 	UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
-	FSCS_BlendingSettings GetBlendInSettings();
-	virtual FSCS_BlendingSettings GetBlendInSettings_Implementation() { return FSCS_BlendingSettings(); }
+	const FSCS_BlendingSettings& GetBlendInSettings();
+	virtual const FSCS_BlendingSettings& GetBlendInSettings_Implementation() { return BlendInSettings; }
 
 
 	// Called at the end of the setup process

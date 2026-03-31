@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "USCS_CameraState.h"
-#include "USCS_SimpleCameraProfile.h"
-#include "USCS_CameraController.generated.h"
+#include "SCS_CameraState.h"
+#include "SCS_SimpleCameraProfile.h"
+#include "SCS_CameraController.generated.h"
 
 UCLASS()
 class SCARLETCAMERASYSTEM_API ASCS_CameraController : public AActor

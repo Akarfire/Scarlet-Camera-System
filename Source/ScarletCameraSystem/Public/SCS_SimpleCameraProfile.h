@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "USCS_CameraProfile.h"
-#include "USCS_SimpleCameraProfile.generated.h"
+#include "SCS_CameraProfile.h"
+#include "SCS_SimpleCameraProfile.generated.h"
 
 USTRUCT(BlueprintType)
 struct FSCS_SimpleCameraProfileDescription
@@ -40,11 +40,11 @@ public:
 	// OVERRIDES
 
 	// Returns desired camera state
-	virtual FSCS_CameraState GetCameraState_Implementation() override;
+	virtual const FSCS_CameraState& GetCameraState_Implementation() override;
 
 	// Returns desired camera state interpolation
-	virtual FSCS_CameraStateInterpolation GetCameraStateInterpolation_Implementation() override;
+	virtual const FSCS_CameraStateInterpolation& GetCameraStateInterpolation_Implementation() override;
 
 	// Returns blending settings for transitioning from previous profile to this one
-	virtual FSCS_BlendingSettings GetBlendInSettings_Implementation() override;
+	virtual const FSCS_BlendingSettings& GetBlendInSettings_Implementation() override;
 };

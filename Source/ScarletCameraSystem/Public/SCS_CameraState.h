@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Curves/CurveFloat.h"
-#include "USCS_CameraState.generated.h"
+#include "SCS_CameraState.generated.h"
 
 // Determines the way camera transform is handled
 UENUM(BlueprintType)
