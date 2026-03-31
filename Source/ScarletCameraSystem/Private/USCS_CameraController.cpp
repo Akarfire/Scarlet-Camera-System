@@ -27,7 +27,7 @@ ASCS_CameraController::ASCS_CameraController()
 	Camera->SetupAttachment(BoomArm);
 
 	// Default profile
-	CurrentCameraProfileName = "Default";
+	DefaultCameraProfile = "Default";
 	SimpleCameraProfiles.Add("Default", FSCS_SimpleCameraProfileDescription());
 }
 
@@ -105,7 +105,7 @@ void ASCS_CameraController::UpdateProfiles(float DeltaTime)
 {
 	GetCameraProfile(CurrentCameraProfileName)->Update(DeltaTime);
 
-	if (IsProfileTransitionAnimationPlaying())
+	if (IsProfileTransitionAnimationPlaying() && PreviousCameraProfile != "SCS_FROZEN_STATE")
 		GetCameraProfile(PreviousCameraProfile)->Update(DeltaTime);
 }
 
@@ -135,6 +135,9 @@ void ASCS_CameraController::UpdateProfileSwitchQueue(float DeltaTime)
 // Updates profile blending animation if one is currently playing or starts a new one if one is queued
 void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 {
+	if (!IsProfileTransitionAnimationPlaying())
+		return;
+
 	// Updating current animation
 	const FSCS_BlendingSettings& BlendInSettings = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings();
 	float Progress = 1.f - BlendingAnimationTime / BlendInSettings.BlendAnimationDuration;
@@ -143,7 +146,7 @@ void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
 
 	FSCS_CameraState InitialState;
-	if (PreviousCameraProfile != "SCS_FROZEN_STATE") // Special value to use frozen state
+	if (PreviousCameraProfile == "SCS_FROZEN_STATE") // Special value to use frozen state
 		InitialState = FrozenState;
 	else
 		InitialState = GetCameraProfile(PreviousCameraProfile)->GetCameraState();
@@ -178,7 +181,8 @@ void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 	if (BlendingAnimationTime <= 0.f)
 	{
 		BlendingAnimationTime = 0.f;
-		GetCameraProfile(PreviousCameraProfile)->Deactivate();
+		if (PreviousCameraProfile != "SCS_FROZEN_STATE")
+			GetCameraProfile(PreviousCameraProfile)->Deactivate();
 	}
 }
 
@@ -458,22 +462,20 @@ FRotator ASCS_CameraController::TimelineInterpolateCameraRotation(const FSCS_Cam
 	else
 		InitialRotation = TargetState.ResolveBoomArmRotation(PlayerActor);
 
-	// Don't ask me why rotations are in this order, I honestly have no idea why it doesn't work
-	// with the normal order
-	return UKismetMathLibrary::RLerp(TargetRotation, InitialRotation, ResultingProgress, true);
+	return UKismetMathLibrary::RLerp(InitialRotation, InitialRotation, ResultingProgress, true);
 }
 
 
 // Stops any currently playing animation
 bool ASCS_CameraController::InterruptProfileTransitionAnimation()
 {
-	if (IsProfileTransitionAnimationPlaying())
+	bool WasPlaying = IsProfileTransitionAnimationPlaying();
+	if (WasPlaying && PreviousCameraProfile != "SCS_FROZEN_STATE")
 		GetCameraProfile(PreviousCameraProfile)->Deactivate();
 
-	bool ReturnValue = IsProfileTransitionAnimationPlaying();
 	BlendingAnimationTime = 0.0f;
 
-	return ReturnValue;
+	return WasPlaying;
 }
 
 // Freezes current state, removing dynamically resolved elements from it
@@ -522,12 +524,16 @@ void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool Tr
 
 		// Setting up previous camera profile (or a special value)
 		if (WasAnimationPlaying || GetCameraProfile(InProfileName)->GetBlendInSettings().AlwaysFreezePreviousState)
+		{
 			PreviousCameraProfile = "SCS_FROZEN_STATE";
-		else
-			PreviousCameraProfile = CurrentCameraProfileName;
 
-		// Freezing the state
-		FreezeCurrentCameraState(FrozenState);
+			// Freezing the state
+			FreezeCurrentCameraState(FrozenState);
+		}
+		else
+		{
+			PreviousCameraProfile = CurrentCameraProfileName;
+		}
 
 		// Start the transition animation
 		CurrentCameraProfileName = InProfileName;
