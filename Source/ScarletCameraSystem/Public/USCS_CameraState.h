@@ -200,7 +200,7 @@ struct FSCS_BlendingSettings
 
 	// Blending animation duration
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	float BlendAnimationDuration = 0.5f;
+	float BlendAnimationDuration = 1.f;
 
 	// TO DO : Add description
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
