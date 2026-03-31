@@ -1,6 +1,5 @@
 # Core Features
 
----
 ### General
 
 * [x] Adding Simple Profiles in Default Settings
@@ -12,7 +11,8 @@
 	* [x] Add Custom Profile Existing
 * [x] Camera Collision
 * [x] Profile Switching Queue
-* [ ] #NotTested Option to disable Profile Switching Queue (the Default behavior)
+* [x] Option to disable Profile Switching Queue (the Default behavior)
+* [ ] #Missing User-Friendly interface for modifying Simple Camera Profiles from Blueprints
 
 ---
 ### Simple Camera Profiles
@@ -48,10 +48,10 @@
 
 * [x] Can Switch Profiles with no animation
 * [x] Default transition animation works
-* [ ] #NotTested Interrupt transition (in no Queue Mode)
+* [x] Interrupt transition (in no Queue Mode)
 * [x] Properties
 	* [x] Blend Animation Duration
-	* [ ] #NotTested Always Freeze Previous State
+	* [x] Always Freeze Previous State
 	* [x] FOV Curve
 	* [x] Boom Arm Length Curve
 	* [x] Camera Offset Curve
@@ -68,3 +68,15 @@
 * [x] Dynamic Camera State
 * [x] Dynamic Camera State Interpolation
 * [x] Dynamic Blend In Settings
+
+---
+
+# Integration
+
+### Scarlet Character Movement
+
+- [x] Linking Scarlet Movement
+- [x] Mapping movement states to profiles from the Camera Controller
+- [x] Default profile for unmapped states
+- [x] Customizing movement state mapping
+- [ ] #Missing Example camera profiles for movement states
