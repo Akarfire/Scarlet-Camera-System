@@ -189,6 +189,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
 	void SetCameraProfile(const FName& InProfileName, bool TransitionAnimation = true, bool Queue = false);
 
+	// Whether the specified profile is registered or not
+	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
+	bool IsCameraProfileValid(const FName& InProfileName) { return CameraProfiles.Contains(InProfileName); }
+
 	// Whether profile transition animation is currently playing or not
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem")
 	bool IsProfileTransitionAnimationPlaying() { return BlendingAnimationTime > 0.0f; }
