@@ -52,6 +52,11 @@ public:
 	virtual FSCS_BlendingSettings GetBlendInSettings_Implementation() { return FSCS_BlendingSettings(); }
 
 
+	// Called at the end of the setup process
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
+	void Initialize();
+	virtual void Initialize_Implementation() {}
+
 	// Called when this profile is activated
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "ScarletCameraSystem|CameraProfile")
 	void Activate();
@@ -75,5 +80,7 @@ public:
 	{ 
 		CameraController = InCameraController;
 		ProfileName = InProfileName; 
+
+		Initialize();
 	}
 };
