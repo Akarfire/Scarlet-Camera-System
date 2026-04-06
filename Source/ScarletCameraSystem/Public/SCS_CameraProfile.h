@@ -33,6 +33,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|CameraProfile")
 	class UCameraComponent* GetCamera();
 
+	// Returns the name of this profile
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|CameraProfile")
+	const FName& GetProfileName() { return ProfileName; }
+
 
 	// VIRTUAL METHODS
 
