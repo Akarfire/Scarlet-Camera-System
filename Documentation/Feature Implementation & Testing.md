@@ -72,7 +72,7 @@
 ---
 ### Examples
 
-- [ ] #Missing Speed based blending custom profile
+- [x] Speed based blending custom profile
 - [ ] #Missing Correct camera integration example
 
 ---
