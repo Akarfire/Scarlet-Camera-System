@@ -219,4 +219,707 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem")
 	bool AddCustomCameraProfileExisting(const FName& InProfileName, class USCS_CameraProfile* InCustomProfile);
 
+
+
+// SIMPLE PROFILE INTERFACE
+public:
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    float GetSimpleProfileFieldOfView(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->CameraState.FieldOfView;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileFieldOfView()!"));
+        return float{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileFieldOfView(const FName& InProfileName, float InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->CameraState.FieldOfView = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileFieldOfView()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    float GetSimpleProfileBoomArmLength(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->CameraState.BoomArmLength;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileBoomArmLength()!"));
+        return float{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileBoomArmLength(const FName& InProfileName, float InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->CameraState.BoomArmLength = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileBoomArmLength()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    FVector GetSimpleProfileCameraOffset(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->CameraState.CameraOffset;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileCameraOffset()!"));
+        return FVector{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileCameraOffset(const FName& InProfileName, FVector InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->CameraState.CameraOffset = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileCameraOffset()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    bool GetSimpleProfileDoCollisionTest(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->CameraState.DoCollisionTest;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileDoCollisionTest()!"));
+        return bool{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileDoCollisionTest(const FName& InProfileName, bool InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->CameraState.DoCollisionTest = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileDoCollisionTest()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    FSCS_CameraLocation GetSimpleProfileCameraLocation(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->CameraState.CameraLocation;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileCameraLocation()!"));
+        return FSCS_CameraLocation{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileCameraLocation(const FName& InProfileName, FSCS_CameraLocation InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->CameraState.CameraLocation = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileCameraLocation()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    FSCS_CameraRotation GetSimpleProfileCameraArmRotation(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->CameraState.CameraArmRotation;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileCameraArmRotation()!"));
+        return FSCS_CameraRotation{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileCameraArmRotation(const FName& InProfileName, FSCS_CameraRotation InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->CameraState.CameraArmRotation = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileCameraArmRotation()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    bool GetSimpleProfileEnableSeparateCameraRotation(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->CameraState.EnableSeparateCameraRotation;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileEnableSeparateCameraRotation()!"));
+        return bool{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileEnableSeparateCameraRotation(const FName& InProfileName, bool InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->CameraState.EnableSeparateCameraRotation = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileEnableSeparateCameraRotation()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    FSCS_CameraRotation GetSimpleProfileSeparateCameraRotation(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->CameraState.SeparateCameraRotation;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileSeparateCameraRotation()!"));
+        return FSCS_CameraRotation{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileSeparateCameraRotation(const FName& InProfileName, FSCS_CameraRotation InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->CameraState.SeparateCameraRotation = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileSeparateCameraRotation()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    ESCS_InterpolationType GetSimpleProfileFieldOfView_InterpolationType(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.FieldOfView_InterpolationType;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileFieldOfView_InterpolationType()!"));
+        return ESCS_InterpolationType{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileFieldOfView_InterpolationType(const FName& InProfileName, ESCS_InterpolationType InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.FieldOfView_InterpolationType = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileFieldOfView_InterpolationType()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    float GetSimpleProfileFieldOfView_InterpolationSpeed(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.FieldOfView_InterpolationSpeed;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileFieldOfView_InterpolationSpeed()!"));
+        return float{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileFieldOfView_InterpolationSpeed(const FName& InProfileName, float InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.FieldOfView_InterpolationSpeed = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileFieldOfView_InterpolationSpeed()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    ESCS_InterpolationType GetSimpleProfileBoomArmLength_InterpolationType(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.BoomArmLength_InterpolationType;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileBoomArmLength_InterpolationType()!"));
+        return ESCS_InterpolationType{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileBoomArmLength_InterpolationType(const FName& InProfileName, ESCS_InterpolationType InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.BoomArmLength_InterpolationType = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileBoomArmLength_InterpolationType()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    float GetSimpleProfileBoomArmLength_InterpolationSpeed(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.BoomArmLength_InterpolationSpeed;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileBoomArmLength_InterpolationSpeed()!"));
+        return float{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileBoomArmLength_InterpolationSpeed(const FName& InProfileName, float InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.BoomArmLength_InterpolationSpeed = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileBoomArmLength_InterpolationSpeed()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    ESCS_InterpolationType GetSimpleProfileCameraOffset_InterpolationType(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.CameraOffset_InterpolationType;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileCameraOffset_InterpolationType()!"));
+        return ESCS_InterpolationType{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileCameraOffset_InterpolationType(const FName& InProfileName, ESCS_InterpolationType InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.CameraOffset_InterpolationType = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileCameraOffset_InterpolationType()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    float GetSimpleProfileCameraOffset_InterpolationSpeed(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.CameraOffset_InterpolationSpeed;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileCameraOffset_InterpolationSpeed()!"));
+        return float{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileCameraOffset_InterpolationSpeed(const FName& InProfileName, float InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.CameraOffset_InterpolationSpeed = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileCameraOffset_InterpolationSpeed()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    ESCS_InterpolationType GetSimpleProfileLocation_InterpolationType(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.Location_InterpolationType;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileLocation_InterpolationType()!"));
+        return ESCS_InterpolationType{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileLocation_InterpolationType(const FName& InProfileName, ESCS_InterpolationType InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.Location_InterpolationType = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileLocation_InterpolationType()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    float GetSimpleProfileLocation_InterpolationSpeed(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.Location_InterpolationSpeed;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileLocation_InterpolationSpeed()!"));
+        return float{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileLocation_InterpolationSpeed(const FName& InProfileName, float InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.Location_InterpolationSpeed = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileLocation_InterpolationSpeed()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    ESCS_InterpolationType GetSimpleProfileRotation_InterpolationType(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.Rotation_InterpolationType;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileRotation_InterpolationType()!"));
+        return ESCS_InterpolationType{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileRotation_InterpolationType(const FName& InProfileName, ESCS_InterpolationType InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.Rotation_InterpolationType = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileRotation_InterpolationType()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    float GetSimpleProfileRotation_InterpolationSpeed(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.Rotation_InterpolationSpeed;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileRotation_InterpolationSpeed()!"));
+        return float{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileRotation_InterpolationSpeed(const FName& InProfileName, float InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.Rotation_InterpolationSpeed = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileRotation_InterpolationSpeed()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    ESCS_InterpolationType GetSimpleProfileSeparateCameraRotation_InterpolationType(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.SeparateCameraRotation_InterpolationType;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileSeparateCameraRotation_InterpolationType()!"));
+        return ESCS_InterpolationType{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileSeparateCameraRotation_InterpolationType(const FName& InProfileName, ESCS_InterpolationType InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.SeparateCameraRotation_InterpolationType = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileSeparateCameraRotation_InterpolationType()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    float GetSimpleProfileSeparateCameraRotation_InterpolationSpeed(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->InterpolationSettings.SeparateCameraRotation_InterpolationSpeed;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileSeparateCameraRotation_InterpolationSpeed()!"));
+        return float{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileSeparateCameraRotation_InterpolationSpeed(const FName& InProfileName, float InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->InterpolationSettings.SeparateCameraRotation_InterpolationSpeed = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileSeparateCameraRotation_InterpolationSpeed()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    float GetSimpleProfileBlendAnimationDuration(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->BlendInSettings.BlendAnimationDuration;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileBlendAnimationDuration()!"));
+        return float{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileBlendAnimationDuration(const FName& InProfileName, float InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->BlendInSettings.BlendAnimationDuration = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileBlendAnimationDuration()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    bool GetSimpleProfileAlwaysFreezePreviousState(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->BlendInSettings.AlwaysFreezePreviousState;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileAlwaysFreezePreviousState()!"));
+        return bool{};
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileAlwaysFreezePreviousState(const FName& InProfileName, bool InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->BlendInSettings.AlwaysFreezePreviousState = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileAlwaysFreezePreviousState()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    UCurveFloat* GetSimpleProfileFieldOfView_Curve(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->BlendInSettings.FieldOfView_Curve;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileFieldOfView_Curve()!"));
+        return nullptr;
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileFieldOfView_Curve(const FName& InProfileName, UCurveFloat* InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->BlendInSettings.FieldOfView_Curve = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileFieldOfView_Curve()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    UCurveFloat* GetSimpleProfileBoomArmLength_Curve(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->BlendInSettings.BoomArmLength_Curve;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileBoomArmLength_Curve()!"));
+        return nullptr;
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileBoomArmLength_Curve(const FName& InProfileName, UCurveFloat* InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->BlendInSettings.BoomArmLength_Curve = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileBoomArmLength_Curve()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    UCurveFloat* GetSimpleProfileCameraOffset_Curve(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->BlendInSettings.CameraOffset_Curve;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileCameraOffset_Curve()!"));
+        return nullptr;
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileCameraOffset_Curve(const FName& InProfileName, UCurveFloat* InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->BlendInSettings.CameraOffset_Curve = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileCameraOffset_Curve()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    UCurveFloat* GetSimpleProfileLocation_Curve(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->BlendInSettings.Location_Curve;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileLocation_Curve()!"));
+        return nullptr;
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileLocation_Curve(const FName& InProfileName, UCurveFloat* InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->BlendInSettings.Location_Curve = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileLocation_Curve()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    UCurveFloat* GetSimpleProfileRotation_Curve(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->BlendInSettings.Rotation_Curve;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileRotation_Curve()!"));
+        return nullptr;
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileRotation_Curve(const FName& InProfileName, UCurveFloat* InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->BlendInSettings.Rotation_Curve = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileRotation_Curve()!"));
+    }
+
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
+    UCurveFloat* GetSimpleProfileSeparateCameraRotation_Curve(const FName& InProfileName)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            return Description->BlendInSettings.SeparateCameraRotation_Curve;
+        }
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileSeparateCameraRotation_Curve()!"));
+        return nullptr;
+    }
+
+    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
+    void SetSimpleProfileSeparateCameraRotation_Curve(const FName& InProfileName, UCurveFloat* InValue)
+    {
+        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
+        if (Description)
+        {
+            Description->BlendInSettings.SeparateCameraRotation_Curve = InValue;
+        }
+        else
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileSeparateCameraRotation_Curve()!"));
+    }
 };
