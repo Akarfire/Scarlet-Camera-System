@@ -619,3 +619,23 @@ bool ASCS_CameraController::AddCustomCameraProfileExisting(const FName& InProfil
 	return true;
 }
 
+
+// UTILITY
+
+// Complete camera state interpolation between A and B
+void ASCS_CameraController::InterpolateCameraState(FSCS_CameraState& OutState, const FSCS_CameraState& InitialState, const FSCS_CameraState& TargetState, float Progress, const FSCS_BlendingSettings& BlendingSettings)
+{
+	TimelineInterpolateCameraState(OutState, InitialState, TargetState, Progress, BlendingSettings);
+
+	OutState.CameraLocation.LocationType = ESCS_TransformType::World;
+	OutState.CameraArmRotation.RotationType = ESCS_TransformType::World;
+	OutState.SeparateCameraRotation.RotationType = ESCS_TransformType::World;
+
+	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
+
+	OutState.CameraLocation.Location = TimelineInterpolateCameraLocation(InitialState, TargetState, Progress, BlendingSettings, PlayerActor);
+	OutState.CameraArmRotation.Rotation = TimelineInterpolateCameraArmRotation(InitialState, TargetState, Progress, BlendingSettings, PlayerController);
+	OutState.SeparateCameraRotation.Rotation = TimelineInterpolateCameraRotation(InitialState, TargetState, Progress, BlendingSettings, PlayerController);
+}
+

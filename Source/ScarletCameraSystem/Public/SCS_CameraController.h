@@ -220,6 +220,12 @@ public:
 	bool AddCustomCameraProfileExisting(const FName& InProfileName, class USCS_CameraProfile* InCustomProfile);
 
 
+    // UTILITY
+    // Complete camera state interpolation between A and B
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|Utility")
+    void InterpolateCameraState(FSCS_CameraState& OutState, const FSCS_CameraState& InitialState, const FSCS_CameraState& TargetState,
+        float Progress, const FSCS_BlendingSettings& BlendingSettings);
+
 
 // SIMPLE PROFILE INTERFACE
 public:
