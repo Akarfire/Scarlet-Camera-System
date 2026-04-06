@@ -12,7 +12,7 @@
 * [x] Camera Collision
 * [x] Profile Switching Queue
 * [x] Option to disable Profile Switching Queue (the Default behavior)
-* [ ] #Missing User-Friendly interface for modifying Simple Camera Profiles from Blueprints
+* [x] User-Friendly interface for modifying Simple Camera Profiles from Blueprints
 
 ---
 ### Simple Camera Profiles
@@ -70,7 +70,12 @@
 * [x] Dynamic Blend In Settings
 
 ---
+### Examples
 
+- [ ] #Missing Speed based blending custom profile
+- [ ] #Missing Correct camera integration example
+
+---
 # Integration
 
 ### Scarlet Character Movement
