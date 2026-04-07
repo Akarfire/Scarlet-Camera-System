@@ -505,6 +505,9 @@ void ASCS_CameraController::FreezeCurrentCameraState(FSCS_CameraState& OutFrozen
 // Changes current camera profile with a transition animation
 void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool TransitionAnimation, bool Queue)
 {
+	if (InProfileName == CurrentCameraProfileName)
+		return;
+
 	if (!CameraProfiles.Contains(InProfileName))
 	{
 		UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid camera profile name passed into `SwitchCameraProfile(...)`"));
