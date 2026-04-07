@@ -13,6 +13,8 @@
 * [x] Profile Switching Queue
 * [x] Option to disable Profile Switching Queue (the Default behavior)
 * [x] User-Friendly interface for modifying Simple Camera Profiles from Blueprints
+* [x] Camera Controller easy setup using a function library
+* [x] Camera Controller access using a function library
 
 ---
 ### Simple Camera Profiles
@@ -73,7 +75,7 @@
 ### Examples
 
 - [x] Speed based blending custom profile
-- [ ] #Missing Correct camera integration example
+- [x] Correct camera integration example
 
 ---
 # Integration
