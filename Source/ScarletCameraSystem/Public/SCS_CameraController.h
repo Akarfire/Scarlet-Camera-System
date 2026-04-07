@@ -66,16 +66,16 @@ public:
 	// (and in case they do, custom profiles will be preffered over simple profiles)
 
 	// Simple camera profile descriptors
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CameraProfiles")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default|CameraProfiles")
 	TMap<FName, FSCS_SimpleCameraProfileDescription> SimpleCameraProfiles;
 
 	// Custom camera profile classes
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CameraProfiles")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default|CameraProfiles")
 	TMap<FName, TSubclassOf<USCS_CameraProfile>> CustomCameraProfiles;
 
 
 	// Camera profile used by default
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CameraProfiles")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default|CameraProfiles")
 	FName DefaultCameraProfile;
 
 
