@@ -76,14 +76,5 @@
 
 - [x] Speed based blending custom profile
 - [x] Correct camera integration example
-
----
-# Integration
-
-### Scarlet Character Movement
-
-- [x] Linking Scarlet Movement
-- [x] Mapping movement states to profiles from the Camera Controller
-- [x] Default profile for unmapped states
-- [x] Customizing movement state mapping
-- [ ] #Missing Example camera profiles for movement states
+- [x] Third Person Character camera controller example
+- [ ] #Missing First Person Character camera controller example
