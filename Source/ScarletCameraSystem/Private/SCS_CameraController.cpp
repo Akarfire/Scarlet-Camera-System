@@ -90,12 +90,13 @@ void ASCS_CameraController::Tick(float DeltaTime)
 
 	UpdateProfiles(DeltaTime);
 
+	UpdateCurrentCameraStateInterpolation();
+
 	UpdateProfileSwitchQueue(DeltaTime);
 	UpdateProfileTransitionAnimation(DeltaTime);
 
 	if (!IsProfileTransitionAnimationPlaying())
 	{
-		UpdateCurrentCameraStateInterpolation();
 		UpdateCurrentCameraState(DeltaTime);
 	}
 }
@@ -169,9 +170,12 @@ void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 	// Application
 	ApplyCameraState(CurrentCameraState, false);
 
+	Location = ProgressiveInterpolateCameraLocation(GetActorLocation(), Location, CurrentCameraStateInterpolation, DeltaTime);
+	BoomArmRotation = ProgressiveInterpolateCameraArmRotation(GetActorRotation(), BoomArmRotation, CurrentCameraStateInterpolation, DeltaTime);
+	CameraRotation = ProgressiveInterpolateCameraRotation(Camera->GetComponentRotation(), CameraRotation, CurrentCameraStateInterpolation, DeltaTime);
+
 	SetActorLocation(Location);
 	SetActorRotation(BoomArmRotation);
-
 	Camera->SetWorldRotation(CameraRotation);
 
 	// Time tick
@@ -206,12 +210,20 @@ void ASCS_CameraController::UpdateCurrentCameraState(float DeltaTime)
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
 
-	SetActorLocation(ProgressiveInterpolateCameraLocation(GetActorLocation(), CurrentCameraState, CurrentCameraStateInterpolation, PlayerActor, DeltaTime));
-	SetActorRotation(ProgressiveInterpolateCameraArmRotation(GetActorRotation(), CurrentCameraState, CurrentCameraStateInterpolation, PlayerController, DeltaTime));
+	SetActorLocation(ProgressiveInterpolateCameraLocation(GetActorLocation(), CurrentCameraState.ResolveLocation(PlayerActor), CurrentCameraStateInterpolation, DeltaTime));
+	SetActorRotation(ProgressiveInterpolateCameraArmRotation(GetActorRotation(), CurrentCameraState.ResolveBoomArmRotation(PlayerController), CurrentCameraStateInterpolation, DeltaTime));
 
 	if (CurrentCameraStateInterpolation.SeparateCameraRotation_InterpolationType != ESCS_InterpolationType::None || CurrentCameraState.EnableSeparateCameraRotation)
-		Camera->SetWorldRotation(ProgressiveInterpolateCameraRotation(Camera->GetComponentRotation(), CurrentCameraState,
-			CurrentCameraStateInterpolation, PlayerController, DeltaTime));
+	{
+		FRotator TargetSeparateCameraRotation;
+		if (CurrentCameraState.EnableSeparateCameraRotation)
+			TargetSeparateCameraRotation = CurrentCameraState.ResolveCameraRotation(PlayerController);
+		else
+			TargetSeparateCameraRotation = CurrentCameraState.ResolveBoomArmRotation(PlayerController);
+
+		Camera->SetWorldRotation(ProgressiveInterpolateCameraRotation(Camera->GetComponentRotation(), TargetSeparateCameraRotation,
+			CurrentCameraStateInterpolation, DeltaTime));
+	}
 
 	// Separating this into a special case to avoid stuttering in rotation
 	else
@@ -307,60 +319,50 @@ void ASCS_CameraController::ProgressiveInterpolateCameraState(FSCS_CameraState& 
 }
 
 // Camera location interpolation over time (not for timelines)
-FVector ASCS_CameraController::ProgressiveInterpolateCameraLocation(const FVector& CurrentLocation, const FSCS_CameraState& State, 
-	const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime)
+FVector ASCS_CameraController::ProgressiveInterpolateCameraLocation(const FVector& CurrentLocation, const FVector& TargetLocation,
+	const FSCS_CameraStateInterpolation& Interpolation, float DeltaTime)
 {
 	FVector NewLocation;
 
 	if (Interpolation.Location_InterpolationType == ESCS_InterpolationType::None)
-		NewLocation = State.ResolveLocation(PlayerActor);
+		NewLocation = TargetLocation;
 
 	else if (Interpolation.Location_InterpolationType == ESCS_InterpolationType::Ease)
-		NewLocation = UKismetMathLibrary::VInterpTo(CurrentLocation,
-			State.ResolveLocation(PlayerActor), DeltaTime,
+		NewLocation = UKismetMathLibrary::VInterpTo(CurrentLocation, TargetLocation, DeltaTime,
 			Interpolation.Location_InterpolationSpeed);
 
 	else if (Interpolation.Location_InterpolationType == ESCS_InterpolationType::Linear)
-		NewLocation = UKismetMathLibrary::VInterpTo_Constant(CurrentLocation,
-			State.ResolveLocation(PlayerActor), DeltaTime,
+		NewLocation = UKismetMathLibrary::VInterpTo_Constant(CurrentLocation, TargetLocation, DeltaTime,
 			Interpolation.Location_InterpolationSpeed);
 
 	return NewLocation;
 }
 
 // Camera rotation interpolation over time (not for timelines)
-FRotator ASCS_CameraController::ProgressiveInterpolateCameraArmRotation(const FRotator& CurrentRotation, const FSCS_CameraState& State,
-	const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime)
+FRotator ASCS_CameraController::ProgressiveInterpolateCameraArmRotation(const FRotator& CurrentRotation, const FRotator& TargetRotation,
+	const FSCS_CameraStateInterpolation& Interpolation, float DeltaTime)
 {
 	FRotator NewRotation;
 
 	if (Interpolation.Rotation_InterpolationType == ESCS_InterpolationType::None)
-		NewRotation = State.ResolveBoomArmRotation(PlayerActor);
+		NewRotation = TargetRotation;
 
 	else if (Interpolation.Rotation_InterpolationType == ESCS_InterpolationType::Ease)
-		NewRotation = UKismetMathLibrary::RInterpTo(CurrentRotation,
-			State.ResolveBoomArmRotation(PlayerActor), DeltaTime,
+		NewRotation = UKismetMathLibrary::RInterpTo(CurrentRotation, TargetRotation, DeltaTime,
 			Interpolation.Rotation_InterpolationSpeed);
 
 	else if (Interpolation.Rotation_InterpolationType == ESCS_InterpolationType::Linear)
-		NewRotation = UKismetMathLibrary::RInterpTo_Constant(CurrentRotation,
-			State.ResolveBoomArmRotation(PlayerActor), DeltaTime,
+		NewRotation = UKismetMathLibrary::RInterpTo_Constant(CurrentRotation, TargetRotation, DeltaTime,
 			Interpolation.Rotation_InterpolationSpeed);
 
 	return NewRotation;
 }
 
 // Camera arm interpolation over time (not for timelines)
-FRotator ASCS_CameraController::ProgressiveInterpolateCameraRotation(const FRotator& CurrentRotation, const FSCS_CameraState& State,
-	const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime)
+FRotator ASCS_CameraController::ProgressiveInterpolateCameraRotation(const FRotator& CurrentRotation, const FRotator& TargetRotation,
+	const FSCS_CameraStateInterpolation& Interpolation, float DeltaTime)
 {
 	FRotator NewRotation;
-
-	FRotator TargetRotation;
-	if (State.EnableSeparateCameraRotation)
-		TargetRotation = State.ResolveCameraRotation(PlayerActor);
-	else
-		TargetRotation = State.ResolveBoomArmRotation(PlayerActor);
 
 	if (Interpolation.SeparateCameraRotation_InterpolationType == ESCS_InterpolationType::None)
 		NewRotation = TargetRotation;

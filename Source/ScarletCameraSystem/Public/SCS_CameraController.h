@@ -125,16 +125,16 @@ protected:
 		float DeltaTime, const FSCS_CameraStateInterpolation& Interpolation);
 
 	// Camera location interpolation over time (not for timelines)
-	FVector ProgressiveInterpolateCameraLocation(const FVector& CurrentLocation, const FSCS_CameraState& State, 
-		const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime);
+	FVector ProgressiveInterpolateCameraLocation(const FVector& CurrentLocation, const FVector& TargetLocation,
+		const FSCS_CameraStateInterpolation& Interpolation, float DeltaTime);
 
 	// Camera arm rotation interpolation over time (not for timelines)
-	FRotator ProgressiveInterpolateCameraArmRotation(const FRotator& CurrentRotation, const FSCS_CameraState& State, 
-		const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime);
+	FRotator ProgressiveInterpolateCameraArmRotation(const FRotator& CurrentRotation, const FRotator& TargetRotation,
+		const FSCS_CameraStateInterpolation& Interpolation, float DeltaTime);
 
 	// Camera arm interpolation over time (not for timelines)
-	FRotator ProgressiveInterpolateCameraRotation(const FRotator& CurrentRotation, const FSCS_CameraState& State,
-		const FSCS_CameraStateInterpolation& Interpolation, AActor* PlayerActor, float DeltaTime);
+	FRotator ProgressiveInterpolateCameraRotation(const FRotator& CurrentRotation, const FRotator& TargetRotation,
+		const FSCS_CameraStateInterpolation& Interpolation, float DeltaTime);
 
 
 	// TIMELINE INTERPOLATION
