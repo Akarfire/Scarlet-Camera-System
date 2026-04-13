@@ -161,7 +161,8 @@ protected:
 	bool InterruptProfileTransitionAnimation();
 
 	// Freezes current state, removing dynamically resolved elements from it
-	void FreezeCurrentCameraState(FSCS_CameraState& OutFrozenState);
+	void FreezeCurrentCameraState(FSCS_CameraState& OutFrozenState, 
+        bool WorldSpaceLocation, bool WorldSpaceArmRotation, bool WorldSpaceCameraRotation);
 
 
 public:

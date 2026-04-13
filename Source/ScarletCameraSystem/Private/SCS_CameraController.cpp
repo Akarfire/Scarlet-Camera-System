@@ -120,10 +120,22 @@ void ASCS_CameraController::UpdateProfileSwitchQueue(float DeltaTime)
 		PreviousCameraProfile = CurrentCameraProfileName;
 		ProfileSwitchingQueue.Dequeue(CurrentCameraProfileName);
 
+		FSCS_CameraState TargetCameraState = GetCameraProfile(CurrentCameraProfileName)->GetCameraState();
+
 		if (GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().AlwaysFreezePreviousState)
 		{
 			PreviousCameraProfile = "SCS_FROZEN_STATE";
-			FreezeCurrentCameraState(FrozenState);
+			// Freezing the state
+			bool WorldSpaceLocation = CurrentCameraState.CameraLocation.LocationType == ESCS_TransformType::World
+				|| (CurrentCameraState.CameraLocation.LocationType != TargetCameraState.CameraLocation.LocationType);
+
+			bool WorldSpaceArmRotation = CurrentCameraState.CameraArmRotation.RotationType == ESCS_TransformType::World
+				|| (CurrentCameraState.CameraArmRotation.RotationType != TargetCameraState.CameraArmRotation.RotationType);
+
+			bool WorldSpaceCameraRotation = CurrentCameraState.SeparateCameraRotation.RotationType == ESCS_TransformType::World
+				|| (CurrentCameraState.SeparateCameraRotation.RotationType != TargetCameraState.SeparateCameraRotation.RotationType);
+
+			FreezeCurrentCameraState(FrozenState, WorldSpaceLocation, WorldSpaceArmRotation, WorldSpaceCameraRotation);
 		}
 
 		GetCameraProfile(CurrentCameraProfileName)->Activate();
@@ -481,25 +493,34 @@ bool ASCS_CameraController::InterruptProfileTransitionAnimation()
 }
 
 // Freezes current state, removing dynamically resolved elements from it
-void ASCS_CameraController::FreezeCurrentCameraState(FSCS_CameraState& OutFrozenState)
+void ASCS_CameraController::FreezeCurrentCameraState(FSCS_CameraState& OutFrozenState, 
+	bool WorldSpaceLocation, bool WorldSpaceArmRotation, bool WorldSpaceCameraRotation)
 {
 	OutFrozenState = CurrentCameraState;
 
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
 
-	FVector Location = CurrentCameraState.ResolveLocation(PlayerActor);
-	FRotator ArmRotation = CurrentCameraState.ResolveBoomArmRotation(PlayerController);
-	FRotator CameraRotation = CurrentCameraState.ResolveCameraRotation(PlayerController);
+	if (WorldSpaceLocation)
+	{
+		FVector Location = CurrentCameraState.ResolveLocation(PlayerActor);
+		OutFrozenState.CameraLocation.LocationType = ESCS_TransformType::World;
+		OutFrozenState.CameraLocation.Location = Location;
+	}
 
-	OutFrozenState.CameraLocation.LocationType = ESCS_TransformType::World;
-	OutFrozenState.CameraLocation.Location = Location;
+	if (WorldSpaceArmRotation)
+	{
+		FRotator ArmRotation = CurrentCameraState.ResolveBoomArmRotation(PlayerController);
+		OutFrozenState.CameraArmRotation.RotationType = ESCS_TransformType::World;
+		OutFrozenState.CameraArmRotation.Rotation = ArmRotation;
+	}
 
-	OutFrozenState.CameraArmRotation.RotationType = ESCS_TransformType::World;
-	OutFrozenState.CameraArmRotation.Rotation = ArmRotation;
-
-	OutFrozenState.SeparateCameraRotation.RotationType = ESCS_TransformType::World;
-	OutFrozenState.SeparateCameraRotation.Rotation = CameraRotation;
+	if (WorldSpaceCameraRotation)
+	{
+		FRotator CameraRotation = CurrentCameraState.ResolveCameraRotation(PlayerController);
+		OutFrozenState.SeparateCameraRotation.RotationType = ESCS_TransformType::World;
+		OutFrozenState.SeparateCameraRotation.Rotation = CameraRotation;
+	}
 }
 
 
@@ -527,13 +548,25 @@ void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool Tr
 		// Empty the queue
 		ProfileSwitchingQueue.Empty();
 
+		auto* TargetProfileObject = GetCameraProfile(InProfileName);
+		FSCS_CameraState TargetProfileState = TargetProfileObject->GetCameraState();
+
 		// Setting up previous camera profile (or a special value)
-		if (WasAnimationPlaying || GetCameraProfile(InProfileName)->GetBlendInSettings().AlwaysFreezePreviousState)
+		if (WasAnimationPlaying || TargetProfileObject->GetBlendInSettings().AlwaysFreezePreviousState)
 		{
 			PreviousCameraProfile = "SCS_FROZEN_STATE";
 
 			// Freezing the state
-			FreezeCurrentCameraState(FrozenState);
+			bool WorldSpaceLocation =	CurrentCameraState.CameraLocation.LocationType == ESCS_TransformType::World 
+										|| (CurrentCameraState.CameraLocation.LocationType != TargetProfileState.CameraLocation.LocationType);
+			
+			bool WorldSpaceArmRotation = CurrentCameraState.CameraArmRotation.RotationType == ESCS_TransformType::World
+										|| (CurrentCameraState.CameraArmRotation.RotationType != TargetProfileState.CameraArmRotation.RotationType);
+			
+			bool WorldSpaceCameraRotation = CurrentCameraState.SeparateCameraRotation.RotationType == ESCS_TransformType::World
+										|| (CurrentCameraState.SeparateCameraRotation.RotationType != TargetProfileState.SeparateCameraRotation.RotationType);
+			
+			FreezeCurrentCameraState(FrozenState, WorldSpaceLocation, WorldSpaceArmRotation, WorldSpaceCameraRotation);
 		}
 		else
 		{
@@ -632,15 +665,43 @@ void ASCS_CameraController::InterpolateCameraState(FSCS_CameraState& OutState, c
 {
 	TimelineInterpolateCameraState(OutState, InitialState, TargetState, Progress, BlendingSettings);
 
-	OutState.CameraLocation.LocationType = ESCS_TransformType::World;
-	OutState.CameraArmRotation.RotationType = ESCS_TransformType::World;
-	OutState.SeparateCameraRotation.RotationType = ESCS_TransformType::World;
-
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
 
-	OutState.CameraLocation.Location = TimelineInterpolateCameraLocation(InitialState, TargetState, Progress, BlendingSettings, PlayerActor);
-	OutState.CameraArmRotation.Rotation = TimelineInterpolateCameraArmRotation(InitialState, TargetState, Progress, BlendingSettings, PlayerController);
-	OutState.SeparateCameraRotation.Rotation = TimelineInterpolateCameraRotation(InitialState, TargetState, Progress, BlendingSettings, PlayerController);
+
+	if (InitialState.CameraLocation.LocationType == ESCS_TransformType::World || (InitialState.CameraLocation.LocationType != TargetState.CameraLocation.LocationType))
+	{
+		OutState.CameraLocation.LocationType = ESCS_TransformType::World;
+		OutState.CameraLocation.Location = TimelineInterpolateCameraLocation(InitialState, TargetState, Progress, BlendingSettings, PlayerActor);
+	}
+	else
+	{
+		OutState.CameraLocation.LocationType = TargetState.CameraLocation.LocationType;
+		OutState.CameraLocation.Location = UKismetMathLibrary::VLerp(InitialState.CameraLocation.Location, TargetState.CameraLocation.Location, Progress);
+	}
+
+
+	if (InitialState.CameraArmRotation.RotationType == ESCS_TransformType::World || (InitialState.CameraArmRotation.RotationType != TargetState.CameraArmRotation.RotationType))
+	{
+		OutState.CameraArmRotation.RotationType = ESCS_TransformType::World;
+		OutState.CameraArmRotation.Rotation = TimelineInterpolateCameraArmRotation(InitialState, TargetState, Progress, BlendingSettings, PlayerController);
+	}
+	else
+	{
+		OutState.CameraArmRotation.RotationType = TargetState.CameraArmRotation.RotationType;
+		OutState.CameraArmRotation.Rotation = UKismetMathLibrary::RLerp(InitialState.CameraArmRotation.Rotation, TargetState.CameraArmRotation.Rotation, Progress, true);
+	}
+
+
+	if (InitialState.SeparateCameraRotation.RotationType == ESCS_TransformType::World || (InitialState.SeparateCameraRotation.RotationType != TargetState.SeparateCameraRotation.RotationType))
+	{
+		OutState.SeparateCameraRotation.RotationType = ESCS_TransformType::World;
+		OutState.SeparateCameraRotation.Rotation = TimelineInterpolateCameraRotation(InitialState, TargetState, Progress, BlendingSettings, PlayerController);
+	}
+	else
+	{
+		OutState.SeparateCameraRotation.RotationType = TargetState.SeparateCameraRotation.RotationType;
+		OutState.SeparateCameraRotation.Rotation = UKismetMathLibrary::RLerp(InitialState.SeparateCameraRotation.Rotation, TargetState.SeparateCameraRotation.Rotation, Progress, true);
+	}
 }
 
