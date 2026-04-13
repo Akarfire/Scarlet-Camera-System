@@ -1,6 +1,6 @@
 # Scarlet Camera System
 
-An Unreal Engine 5.4 plugin that implements a dynamic & modular camera control system. Scarlet Camera System (SCS) provides means to define static or dynamic Camera Profiles and dynamically switch between them!
+An Unreal Engine 5.4 plugin that implements a dynamic & modular camera control system. Scarlet Camera System (SCS) provides means to define static or dynamic Camera Profiles and dynamically switch between them.
 
 **Status: Early Access / In Development**
 
@@ -31,6 +31,8 @@ Switching between camera profiles is handled with a customizable transition anim
 
 In addition to class-defined custom camera profiles, this system provides Simple Camera Profiles, that can be easily customized using the following set of parameters:
 ![](Documentation/Images/ProfileSettings.png)
+
+*NOTE: This same set of parameters can be dynamically controlled using custom profiles, simple profiles just provide a parameter-only way of customizing them.*
 
 *Simple profiles can be used for many purposes, including providing configuration for custom profiles, that blend blend between parameters of OTHER camera profiles, as shown in the example above.*
 
