@@ -11,20 +11,14 @@ kanban-plugin: board
 - [ ] * [x] Profile Switch Transition
 - [ ] * [x] Simple Camera Profiles
 - [ ] * [x] Custom Camera Profiles
-- [ ] * [ ] Adding Profiles In Runtime
-- [ ] * [ ] Easy Interface for Simple Profile Modification
-
-
-## Integration
-
-- [ ] * [ ] Scarlet Movement
-- [ ] * [ ] Scarlet Combat
+- [ ] * [x] Adding Profiles In Runtime
+- [ ] * [x] Easy Interface for Simple Profile Modification
 
 
 
 
 %% kanban:settings
 ```
-{"kanban-plugin":"board","list-collapse":[false,false]}
+{"kanban-plugin":"board","list-collapse":[false]}
 ```
 %%
