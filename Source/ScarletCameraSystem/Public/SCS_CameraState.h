@@ -200,11 +200,7 @@ struct FSCS_BlendingSettings
 
 	// Blending animation duration
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	float BlendAnimationDuration = 1.f;
-
-	// TO DO : Add description
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool AlwaysFreezePreviousState = false;
+	float TransitionAnimationDuration = 1.f;
 
 	// Blending curve for camera's field of view
 	// Ease-In-Out interpolation is used if not curve is specified

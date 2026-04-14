@@ -50,9 +50,6 @@ protected:
 	// Queue of profiles we need to switch to
 	TQueue<FName> ProfileSwitchingQueue;
 
-	// Name of the camera profile that was active before the latest switch animation has started playing
-	FName PreviousCameraProfile;
-
 	// Current time value of the blending animation, goes from Duration to 0.0 (or below 0.0) while playing
 	// If the value is <= 0.0, then the animation has stopped / is not playing
 	float BlendingAnimationTime = 0.0;
@@ -155,11 +152,6 @@ protected:
 	FRotator TimelineInterpolateCameraRotation(const FSCS_CameraState& InitialState, const FSCS_CameraState& TargetState,
 		float Progress, const FSCS_BlendingSettings& BlendingSettings, AActor* PlayerActor);
 
-
-	// Stops any currently playing animation
-	// Returns wheter the animation was playing before this interrupt
-	bool InterruptProfileTransitionAnimation();
-
 	// Freezes current state, removing dynamically resolved elements from it
 	void FreezeCurrentCameraState(FSCS_CameraState& OutFrozenState, 
         bool WorldSpaceLocation, bool WorldSpaceArmRotation, bool WorldSpaceCameraRotation);
@@ -230,6 +222,7 @@ public:
 
 // SIMPLE PROFILE INTERFACE
 public:
+
 
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
     float GetSimpleProfileFieldOfView(const FName& InProfileName)
@@ -732,52 +725,27 @@ public:
 
 
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
-    float GetSimpleProfileBlendAnimationDuration(const FName& InProfileName)
+    float GetSimpleProfileTransitionAnimationDuration(const FName& InProfileName)
     {
         FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
         if (Description)
         {
-            return Description->BlendInSettings.BlendAnimationDuration;
+            return Description->BlendInSettings.TransitionAnimationDuration;
         }
-        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileBlendAnimationDuration()!"));
+        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileTransitionAnimationDuration()!"));
         return float{};
     }
 
     UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
-    void SetSimpleProfileBlendAnimationDuration(const FName& InProfileName, float InValue)
+    void SetSimpleProfileTransitionAnimationDuration(const FName& InProfileName, float InValue)
     {
         FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
         if (Description)
         {
-            Description->BlendInSettings.BlendAnimationDuration = InValue;
+            Description->BlendInSettings.TransitionAnimationDuration = InValue;
         }
         else
-            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileBlendAnimationDuration()!"));
-    }
-
-
-    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|SimpleProfiles")
-    bool GetSimpleProfileAlwaysFreezePreviousState(const FName& InProfileName)
-    {
-        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
-        if (Description)
-        {
-            return Description->BlendInSettings.AlwaysFreezePreviousState;
-        }
-        UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into GetSimpleProfileAlwaysFreezePreviousState()!"));
-        return bool{};
-    }
-
-    UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|SimpleProfiles")
-    void SetSimpleProfileAlwaysFreezePreviousState(const FName& InProfileName, bool InValue)
-    {
-        FSCS_SimpleCameraProfileDescription* Description = SimpleCameraProfiles.Find(InProfileName);
-        if (Description)
-        {
-            Description->BlendInSettings.AlwaysFreezePreviousState = InValue;
-        }
-        else
-            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileAlwaysFreezePreviousState()!"));
+            UE_LOG(LogTemp, Error, TEXT("SCARLET CAMERA SYSTEM : Invalid profile name passed into SetSimpleProfileTransitionAnimationDuration()!"));
     }
 
 

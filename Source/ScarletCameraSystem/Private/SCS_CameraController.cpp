@@ -104,10 +104,8 @@ void ASCS_CameraController::Tick(float DeltaTime)
 // Updates currently active profiles
 void ASCS_CameraController::UpdateProfiles(float DeltaTime)
 {
-	GetCameraProfile(CurrentCameraProfileName)->Update(DeltaTime);
-
-	if (IsProfileTransitionAnimationPlaying() && PreviousCameraProfile != "SCS_FROZEN_STATE")
-		GetCameraProfile(PreviousCameraProfile)->Update(DeltaTime);
+	if (IsCameraProfileValid(CurrentCameraProfileName))
+		GetCameraProfile(CurrentCameraProfileName)->Update(DeltaTime);
 }
 
 // Starts profile transition animations for enqueued switch requests
@@ -117,30 +115,32 @@ void ASCS_CameraController::UpdateProfileSwitchQueue(float DeltaTime)
 	{
 		if (ProfileSwitchingQueue.IsEmpty()) return;
 
-		PreviousCameraProfile = CurrentCameraProfileName;
-		ProfileSwitchingQueue.Dequeue(CurrentCameraProfileName);
+		FName NewProfile;
+		ProfileSwitchingQueue.Dequeue(NewProfile);
 
-		FSCS_CameraState TargetCameraState = GetCameraProfile(CurrentCameraProfileName)->GetCameraState();
+		// Freezing the state
+		FSCS_CameraState TargetCameraState = GetCameraProfile(NewProfile)->GetCameraState();
 
-		if (GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().AlwaysFreezePreviousState)
-		{
-			PreviousCameraProfile = "SCS_FROZEN_STATE";
-			// Freezing the state
-			bool WorldSpaceLocation = CurrentCameraState.CameraLocation.LocationType == ESCS_TransformType::World
-				|| (CurrentCameraState.CameraLocation.LocationType != TargetCameraState.CameraLocation.LocationType);
+		bool WorldSpaceLocation = CurrentCameraState.CameraLocation.LocationType == ESCS_TransformType::World
+			|| (CurrentCameraState.CameraLocation.LocationType != TargetCameraState.CameraLocation.LocationType);
 
-			bool WorldSpaceArmRotation = CurrentCameraState.CameraArmRotation.RotationType == ESCS_TransformType::World
-				|| (CurrentCameraState.CameraArmRotation.RotationType != TargetCameraState.CameraArmRotation.RotationType);
+		bool WorldSpaceArmRotation = CurrentCameraState.CameraArmRotation.RotationType == ESCS_TransformType::World
+			|| (CurrentCameraState.CameraArmRotation.RotationType != TargetCameraState.CameraArmRotation.RotationType);
 
-			bool WorldSpaceCameraRotation = CurrentCameraState.SeparateCameraRotation.RotationType == ESCS_TransformType::World
-				|| (CurrentCameraState.SeparateCameraRotation.RotationType != TargetCameraState.SeparateCameraRotation.RotationType);
+		bool WorldSpaceCameraRotation = CurrentCameraState.SeparateCameraRotation.RotationType == ESCS_TransformType::World
+			|| (CurrentCameraState.SeparateCameraRotation.RotationType != TargetCameraState.SeparateCameraRotation.RotationType);
 
-			FreezeCurrentCameraState(FrozenState, WorldSpaceLocation, WorldSpaceArmRotation, WorldSpaceCameraRotation);
-		}
+		FreezeCurrentCameraState(FrozenState, WorldSpaceLocation, WorldSpaceArmRotation, WorldSpaceCameraRotation);
 
+		// Deactivate old profile
+		GetCameraProfile(CurrentCameraProfileName)->Deactivate();
+
+		// Activating new profile
+		CurrentCameraProfileName = NewProfile;
 		GetCameraProfile(CurrentCameraProfileName)->Activate();
 
-		BlendingAnimationTime = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().BlendAnimationDuration + DeltaTime;
+		// Starting animation
+		BlendingAnimationTime = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().TransitionAnimationDuration + DeltaTime;
 		// + DeltaTime is to compensate this ticks animation update
 	}
 }
@@ -153,21 +153,19 @@ void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 
 	// Updating current animation
 	const FSCS_BlendingSettings& BlendInSettings = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings();
-	float Progress = 1.f - BlendingAnimationTime / BlendInSettings.BlendAnimationDuration;
+	float Progress = 1.f - BlendingAnimationTime / BlendInSettings.TransitionAnimationDuration;
 
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
 
-	FSCS_CameraState InitialState;
-	if (PreviousCameraProfile == "SCS_FROZEN_STATE") // Special value to use frozen state
-		InitialState = FrozenState;
-	else
-		InitialState = GetCameraProfile(PreviousCameraProfile)->GetCameraState();
+	FSCS_CameraState InitialState = FrozenState;
 
 	FSCS_CameraState TargetState = GetCameraProfile(CurrentCameraProfileName)->GetCameraState();
 
 	// State interpolation
-	TimelineInterpolateCameraState(CurrentCameraState,
+	FSCS_CameraState NewState;
+
+	TimelineInterpolateCameraState(NewState,
 		InitialState, TargetState, Progress, BlendInSettings);
 
 	FVector Location = TimelineInterpolateCameraLocation(
@@ -180,6 +178,7 @@ void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 		InitialState, TargetState, Progress, BlendInSettings, PlayerController);
 
 	// Application
+	ProgressiveInterpolateCameraState(CurrentCameraState, NewState, DeltaTime, CurrentCameraStateInterpolation);
 	ApplyCameraState(CurrentCameraState, false);
 
 	Location = ProgressiveInterpolateCameraLocation(GetActorLocation(), Location, CurrentCameraStateInterpolation, DeltaTime);
@@ -197,8 +196,6 @@ void ASCS_CameraController::UpdateProfileTransitionAnimation(float DeltaTime)
 	if (BlendingAnimationTime <= 0.f)
 	{
 		BlendingAnimationTime = 0.f;
-		if (PreviousCameraProfile != "SCS_FROZEN_STATE")
-			GetCameraProfile(PreviousCameraProfile)->Deactivate();
 	}
 }
 
@@ -219,6 +216,10 @@ void ASCS_CameraController::UpdateCurrentCameraState(float DeltaTime)
 	ApplyCameraState(CurrentCameraState, false);
 
 	// Applying transform
+	CurrentCameraState.CameraLocation = TargetState.CameraLocation;
+	CurrentCameraState.SeparateCameraRotation = TargetState.SeparateCameraRotation;
+	CurrentCameraState.CameraArmRotation = TargetState.CameraArmRotation;
+
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this, PlayerIndex);
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, PlayerIndex);
 
@@ -325,9 +326,9 @@ void ASCS_CameraController::ProgressiveInterpolateCameraState(FSCS_CameraState& 
 	CurrentState.EnableSeparateCameraRotation = TargetState.EnableSeparateCameraRotation;
 
 	// Transform (No interpolation here, interpolation happens on the application stage)
-	CurrentState.CameraLocation = TargetState.CameraLocation;
-	CurrentState.SeparateCameraRotation = TargetState.SeparateCameraRotation;
-	CurrentState.CameraArmRotation = TargetState.CameraArmRotation;
+	//CurrentState.CameraLocation = TargetState.CameraLocation;
+	//CurrentState.SeparateCameraRotation = TargetState.SeparateCameraRotation;
+	//CurrentState.CameraArmRotation = TargetState.CameraArmRotation;
 }
 
 // Camera location interpolation over time (not for timelines)
@@ -480,18 +481,6 @@ FRotator ASCS_CameraController::TimelineInterpolateCameraRotation(const FSCS_Cam
 }
 
 
-// Stops any currently playing animation
-bool ASCS_CameraController::InterruptProfileTransitionAnimation()
-{
-	bool WasPlaying = IsProfileTransitionAnimationPlaying();
-	if (WasPlaying && PreviousCameraProfile != "SCS_FROZEN_STATE")
-		GetCameraProfile(PreviousCameraProfile)->Deactivate();
-
-	BlendingAnimationTime = 0.0f;
-
-	return WasPlaying;
-}
-
 // Freezes current state, removing dynamically resolved elements from it
 void ASCS_CameraController::FreezeCurrentCameraState(FSCS_CameraState& OutFrozenState, 
 	bool WorldSpaceLocation, bool WorldSpaceArmRotation, bool WorldSpaceCameraRotation)
@@ -542,8 +531,8 @@ void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool Tr
 
 	else if (TransitionAnimation)
 	{
-		// Interrupting Animation
-		bool WasAnimationPlaying = InterruptProfileTransitionAnimation();
+		// Stopping current animation
+		BlendingAnimationTime = 0.0f;
 
 		// Empty the queue
 		ProfileSwitchingQueue.Empty();
@@ -551,33 +540,27 @@ void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool Tr
 		auto* TargetProfileObject = GetCameraProfile(InProfileName);
 		FSCS_CameraState TargetProfileState = TargetProfileObject->GetCameraState();
 
-		// Setting up previous camera profile (or a special value)
-		if (WasAnimationPlaying || TargetProfileObject->GetBlendInSettings().AlwaysFreezePreviousState)
-		{
-			PreviousCameraProfile = "SCS_FROZEN_STATE";
+		// Freezing the state
+		bool WorldSpaceLocation =	CurrentCameraState.CameraLocation.LocationType == ESCS_TransformType::World 
+									|| (CurrentCameraState.CameraLocation.LocationType != TargetProfileState.CameraLocation.LocationType);
+			
+		bool WorldSpaceArmRotation = CurrentCameraState.CameraArmRotation.RotationType == ESCS_TransformType::World
+									|| (CurrentCameraState.CameraArmRotation.RotationType != TargetProfileState.CameraArmRotation.RotationType);
+			
+		bool WorldSpaceCameraRotation = CurrentCameraState.SeparateCameraRotation.RotationType == ESCS_TransformType::World
+									|| (CurrentCameraState.SeparateCameraRotation.RotationType != TargetProfileState.SeparateCameraRotation.RotationType);
+			
+		FreezeCurrentCameraState(FrozenState, WorldSpaceLocation, WorldSpaceArmRotation, WorldSpaceCameraRotation);
 
-			// Freezing the state
-			bool WorldSpaceLocation =	CurrentCameraState.CameraLocation.LocationType == ESCS_TransformType::World 
-										|| (CurrentCameraState.CameraLocation.LocationType != TargetProfileState.CameraLocation.LocationType);
-			
-			bool WorldSpaceArmRotation = CurrentCameraState.CameraArmRotation.RotationType == ESCS_TransformType::World
-										|| (CurrentCameraState.CameraArmRotation.RotationType != TargetProfileState.CameraArmRotation.RotationType);
-			
-			bool WorldSpaceCameraRotation = CurrentCameraState.SeparateCameraRotation.RotationType == ESCS_TransformType::World
-										|| (CurrentCameraState.SeparateCameraRotation.RotationType != TargetProfileState.SeparateCameraRotation.RotationType);
-			
-			FreezeCurrentCameraState(FrozenState, WorldSpaceLocation, WorldSpaceArmRotation, WorldSpaceCameraRotation);
-		}
-		else
-		{
-			PreviousCameraProfile = CurrentCameraProfileName;
-		}
+		// Deactivating current profile
+		GetCameraProfile(CurrentCameraProfileName)->Deactivate();
 
-		// Start the transition animation
+		// Activating new profile
 		CurrentCameraProfileName = InProfileName;
 		GetCameraProfile(CurrentCameraProfileName)->Activate();
 
-		BlendingAnimationTime = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().BlendAnimationDuration;
+		// Starting animation
+		BlendingAnimationTime = GetCameraProfile(CurrentCameraProfileName)->GetBlendInSettings().TransitionAnimationDuration;
 	}
 
 	else
@@ -586,15 +569,18 @@ void ASCS_CameraController::SetCameraProfile(const FName& InProfileName, bool Tr
 		if (CurrentProfile)
 			CurrentProfile->Deactivate();
 
-		// Interrupting Animation
-		InterruptProfileTransitionAnimation();
+		// Stopping current animation
+		BlendingAnimationTime = 0.0f;
 
 		// Empty the queue
 		ProfileSwitchingQueue.Empty();
 
+		// Activating new profile
 		CurrentCameraProfileName = InProfileName;
 		GetCameraProfile(CurrentCameraProfileName)->Activate();
 
+		// Aplying current state
+		CurrentCameraState = GetCameraProfile(CurrentCameraProfileName)->GetCameraState();
 		ApplyCameraState(CurrentCameraState, true);
 	}
 }

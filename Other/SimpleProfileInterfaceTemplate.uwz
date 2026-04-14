@@ -26,8 +26,7 @@
 `ESCS_InterpolationType`| `SeparateCameraRotation_InterpolationType` | `InterpolationSettings`
 `float`| `SeparateCameraRotation_InterpolationSpeed` | `InterpolationSettings`
 
-`float`| `BlendAnimationDuration` | `BlendInSettings`
-`bool`| `AlwaysFreezePreviousState` | `BlendInSettings`
+`float`| `TransitionAnimationDuration` | `BlendInSettings`
 @
 
 @Template
