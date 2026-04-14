@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "SCS_CameraState.h"
+#include "SCS_Types.h"
 #include "SCS_SimpleCameraProfile.h"
 #include "SCS_CameraController.generated.h"
 

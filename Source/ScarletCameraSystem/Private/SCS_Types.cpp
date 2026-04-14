@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SCS_CameraState.h"
+#include "SCS_Types.h"
 
 
 // Calculates location of the origin point of the boom arm

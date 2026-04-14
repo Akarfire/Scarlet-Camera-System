@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "SCS_CameraState.h"
+#include "SCS_Types.h"
 #include "SCS_CameraProfile.generated.h"
 
 /**
