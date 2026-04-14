@@ -44,7 +44,7 @@ In addition to class-defined custom camera profiles, this system provides Simple
 **1.** Create a blueprint class, derived from `ScarletCameraControllerBP`: this class will contain you camera configuration. This class will be further referred to as `MyController`.
 
 **2.** In your player character/pawn class use a `GetOrCreateScarletCameraController` to access or create, if necessary, a camera controller. Specify `MyController` as the controller class:
-![](Images/Setup.png)
+![](Documentation/Images/Setup.png)
 
 **3.** Make sure your character mesh and capsule do not block Camera trace channel, otherwise camera collision will not work properly.
 
@@ -56,7 +56,7 @@ Scarlet Camera System provides 2 general kinds of camera profiles: *Simple* and 
 *Custom* profiles require you to create a blueprint class, derived from `SCS_CameraProfile`, while *Simple* profiles let you specify there configuration directly in `MyController`'s parameters.
 
 Profiles can be defined in *Class Defaults* section in `MyController` blueprint class:
-![](Images/AddingCameraProfiles.png)
+![](Documentation/Images/AddingCameraProfiles.png)
 
 **IMPORTANT: Profile name spaces are shared! Simple profile names MUST not overlap with Custom profile names!**
 
@@ -66,7 +66,7 @@ Profiles can be defined in *Class Defaults* section in `MyController` blueprint 
 #### Switching Between Profiles
 
 You can switch between camera profiles using `SetCameraProfile`:
-![](Images/SetCameraProfileNode.png)
+![](Documentation/Images/SetCameraProfileNode.png)
 
 * `TransitionAnimation` determines whether the transition animation is played or not.
 * `Queue` - this flag enables queueing of profile switch requests, if set to true, profile switch requests will play one after the other. Queue transitions are interrupted if  `SetCameraProfile` is called without the `Queue` flag.
