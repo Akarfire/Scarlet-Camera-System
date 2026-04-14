@@ -24,12 +24,12 @@ class SCARLETCAMERASYSTEM_API USCS_FunctionLibrary : public UBlueprintFunctionLi
 	// If non exists, returns nullptr
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ScarletCameraSystem|Utility")
 	static ASCS_CameraController* GetScarletCameraControllerOfClass(const UObject* WorldContextObject, 
-		TSubclassOf<ASCS_CameraController> CameraControllerClass, bool AllowDecendants = true, int PlayerIndex = 0);
+		TSubclassOf<ASCS_CameraController> CameraControllerClass, bool AllowDescendants = true, int PlayerIndex = 0);
 
 	// Attempts to find a scarlet camera controller actor in the world
 	// If non exists, creates a new one
 	UFUNCTION(BlueprintCallable, Category = "ScarletCameraSystem|Utility")
 	static ASCS_CameraController* GetOrCreateScarletCameraController(const UObject* WorldContextObject, 
-		TSubclassOf<ASCS_CameraController> CameraControllerClass, const FTransform& DefaultSpawnTransform, bool AllowDecendants = true, int PlayerIndex = 0);
+		TSubclassOf<ASCS_CameraController> CameraControllerClass, const FTransform& DefaultSpawnTransform, bool AllowDescendants = true, int PlayerIndex = 0);
 
 };

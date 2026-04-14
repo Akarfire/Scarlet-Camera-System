@@ -25,7 +25,7 @@ ASCS_CameraController* USCS_FunctionLibrary::GetScarletCameraController(const UO
 // Attempts to find a scarlet camera controller actor with a matching class
 // If non exists, returns nullptr
 ASCS_CameraController* USCS_FunctionLibrary::GetScarletCameraControllerOfClass(const UObject* WorldContextObject, 
-    TSubclassOf<ASCS_CameraController> CameraControllerClass, bool AllowDecendants, int PlayerIndex)
+    TSubclassOf<ASCS_CameraController> CameraControllerClass, bool AllowDescendants, int PlayerIndex)
 {
     TArray<AActor*> CameraControllerActors;
     UGameplayStatics::GetAllActorsOfClass(WorldContextObject, ASCS_CameraController::StaticClass(), CameraControllerActors);
@@ -34,7 +34,7 @@ ASCS_CameraController* USCS_FunctionLibrary::GetScarletCameraControllerOfClass(c
     {
         ASCS_CameraController* CameraController = Cast<ASCS_CameraController>(ControllerActor);
         if (CameraController)
-            if(CameraController->GetClass() == CameraControllerClass || (AllowDecendants && CameraController->GetClass()->IsChildOf(CameraControllerClass)))
+            if(CameraController->GetClass() == CameraControllerClass || (AllowDescendants && CameraController->GetClass()->IsChildOf(CameraControllerClass)))
                 if (CameraController->PlayerIndex == PlayerIndex)
                     return CameraController;
     }
@@ -45,9 +45,9 @@ ASCS_CameraController* USCS_FunctionLibrary::GetScarletCameraControllerOfClass(c
 // Attempts to find a scarlet camera controller actor in the world
 // If non exists, creates a new one
 ASCS_CameraController* USCS_FunctionLibrary::GetOrCreateScarletCameraController(const UObject* WorldContextObject, 
-    TSubclassOf<ASCS_CameraController> CameraControllerClass, const FTransform& DefaultSpawnTransform, bool AllowDecendants, int PlayerIndex)
+    TSubclassOf<ASCS_CameraController> CameraControllerClass, const FTransform& DefaultSpawnTransform, bool AllowDescendants, int PlayerIndex)
 {
-    ASCS_CameraController* ExistingController = GetScarletCameraControllerOfClass(WorldContextObject, CameraControllerClass, AllowDecendants, PlayerIndex);
+    ASCS_CameraController* ExistingController = GetScarletCameraControllerOfClass(WorldContextObject, CameraControllerClass, AllowDescendants, PlayerIndex);
     if (ExistingController)
         return ExistingController;
 
