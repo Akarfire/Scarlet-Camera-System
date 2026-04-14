@@ -79,6 +79,3 @@ You can switch between camera profiles using `SetCameraProfile`:
 1. Download the latest release;
 2. Extract the archive and move plugin folder to the `./Plugins` directory in your project (if your project has no `./Plugin` directory, then create it).
 
----
-### Documentation
-
