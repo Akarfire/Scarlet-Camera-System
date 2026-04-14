@@ -157,6 +157,10 @@ protected:
         bool WorldSpaceLocation, bool WorldSpaceArmRotation, bool WorldSpaceCameraRotation);
 
 
+    bool WorldSpaceLocationCondition(const FSCS_CameraState& InitialState, const FSCS_CameraState& TargetState);
+    bool WorldSpaceArmRotationCondition(const FSCS_CameraState& InitialState, const FSCS_CameraState& TargetState);
+    bool WorldSpaceSeparateCameraRotationCondition(const FSCS_CameraState& InitialState, const FSCS_CameraState& TargetState);
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
