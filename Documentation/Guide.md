@@ -2,7 +2,7 @@
 
 ### Setup
 
-**1.** Create a blueprint class, derived from `ScarletCameraControllerBP`: this class will contain you camera configuration. This class will be further referred to as `MyController`.
+**1.** Create a blueprint class, derived from `ScarletCameraControllerBP` - this class will contain your camera configuration. This class will be further referred to as `MyController`.
 
 **2.** In your player character/pawn class use a `GetOrCreateScarletCameraController` to access or create, if necessary, a camera controller. Specify `MyController` as the controller class:
 ![](Images/Setup.png)
@@ -14,7 +14,7 @@
 
 Scarlet Camera System provides 2 general kinds of camera profiles: *Simple* and *Custom*.
 
-*Custom* profiles require you to create a blueprint class, derived from `SCS_CameraProfile`, while *Simple* profiles let you specify there configuration directly in `MyController`'s parameters.
+*Custom* profiles require you to create a class, derived from `SCS_CameraProfile`, while *Simple* profiles let you specify there configuration directly in `MyController`'s parameters.
 
 Profiles can be defined in *Class Defaults* section in `MyController` blueprint class:
 ![](Images/AddingCameraProfiles.png)
@@ -66,15 +66,70 @@ Pattern below is NOT recommended:
 	- `AttachmentActor` - acts as an attachment point, when *Actor Attachment* rotation type is used.
 	- `Rotation` - rotation/offset of the camera arm in space, determined by Rotation Type.
 
-- `EnableSeparateCameraRotation` 
-- `SeparateCameraRotation`
-	- `RotationType`
-	- `AttachmentActor`
-	- `Rotation`
+- `EnableSeparateCameraRotation` - whether to allow camera to rotate independently from the camera arm. If set to true, `SeparateCameraRotation` will be used for camera rotation.
+- `SeparateCameraRotation` - camera rotation that is independent from the camera arm:
+	- `RotationType` - defines the way rotation is resolved:
+		* *Player Attachment* - camera is attached to the player's pawn actor;
+		- *Actor Attachment* - camera is attached to an arbitrary actor, defined by `AttachmentActor`;
+		- `World` - camera is placed stationary in the world.
+	- `AttachmentActor` - acts as an attachment point, when *Actor Attachment* rotation type is used.
+	- `Rotation` - rotation/offset of the camera in space, determined by Rotation Type.
 
 #### Camera State Interpolation
 
+The following parameters determine how camera state's parameters are interpolated (smoothed) over time. Every parameter (that required interpolation) has a corresponding interpolation type and interpolation speed value:
+
+- `FieldOfView_InterpolationType`
+- `FieldOfView_InterpolationSpeed`
+
+- `BoomArmLength_InterpolationType`
+- `BoomArmLength_InterpolationSpeed`
+
+- `CameraOffset_InterpolationType`
+- `CameraOffset_InterpolationSpeed`
+
+- `Location_InterpolationType`
+- `Location_InterpolationSpeed`
+
+- `Rotation_InterpolationType`
+- `Rotation_InterpolationSpeed`
+
+- `SeparateCameraRotation_InterpolationType`
+- `SeparateCameraRotation_InterpolationSpeed`
+
+Scarlet camera system implements the following types of interpolation:
+* *None* - instant transition, no interpolation is used;
+* *Linear* - values are interpolated with a constant speed;
+* *Ease* - classic ease-in-out interpolation (default).
+
 #### Blend In Settings
+
+Blend In settings define transition animation parameters when switching to this profile (profile that owns this blend in settings).
+
+* `TransitionAnimationDuration` - determines how long the transition animation is (in seconds).
+
+For every camera state parameter, that required interpolation, a transition curve can be specified:
+- `FieldOfView_Curve`
+- `BoomArmLength_Curve`
+- `Location_Curve`
+- `Rotation_Curve`
+- `SeparateCameraRotation_Curve`
+
+*NOTE: Ease-In-Out interpolation is used if not curve is provided.*
 
 ---
 ### Creating Custom Profiles
+
+To create a custom profile you need to create a class (blueprint or C++), derived from `USCS_CameraProfile` and override the following methods:
+* `GetCameraState()`
+* `GetCameraStateInterpolation()`
+* `GetBlendInSettings()`
+
+These methods can (and should) define dynamic values for corresponding values.
+
+Additionally you can override `Activate`, `Deactivate` and `Update` methods:
+![](Images/CustomProfileAdditionalMethods.png)
+
+* `Activate` is called when this profile is switched to (the moment transition animation starts or `SetCameraProfile` is called).
+* `Deactivate` is called right before a new profile is activated.
+* `Update` is called every tick when this profile is active (used as current camera profile).
